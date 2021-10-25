@@ -35,11 +35,14 @@ void preprocessing(string filename)
 
 void read_configuration(string filename)
 {
-    // Diavazetai tis times
-    
-    
-    
-    Configuration c(a,b,c,d);
-    
-    conf = c;
+    Configuration *c = c->getInstace();
+
+    ifstream infile(filename);
+    int cluster_data; 
+
+    while (infile >> cluster_data)
+    {
+        c->setData(cluster_data);
+    }
+    c->globalDataInit();
 }
