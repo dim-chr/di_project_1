@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <random>
+#include <algorithm>
 #include <cmath>
 
 /*
@@ -18,12 +19,15 @@
 
 int window;     // w
 vector<int> r;
+vector<vector<int>> g;
+vector<double> t;
+vector<vector<double>> v;
 
 HashTable *hashTables;
 
 using namespace std;
 
-void init_hashing(int k, int L, unsigned int TableSize)
+void init_hashing(int k, int L, int d, unsigned int TableSize)
 {
     // Init
     srand( time(0) );
@@ -34,59 +38,113 @@ void init_hashing(int k, int L, unsigned int TableSize)
     
     
     // Ftiaxnoume ta ri
-    default_random_engine generator;
-    uniform_int_distribution<int> distribution( 1, 10 );
-    
-    for (int i = 0; i < k; i++) {
-        
-        r.push_back( distribution(generator) );
+    {
+        default_random_engine generator;
+        uniform_int_distribution<int> distribution( 1, 10 );
+
+        for (int i = 0; i < k; i++) {
+
+            r.push_back( distribution(generator) );
+        }
     }
 
+    // Ftiaxnoume ta t
+    {
+        default_random_engine generator;
+        uniform_real_distribution<double> distribution( 0, window );
+
+        for (int i = 0; i < k; i++) {
+
+            t.push_back( distribution(generator) );
+        }
+    }
     
+    // Ftiaxnoume ta v
+    {
+        default_random_engine generator;
+        normal_distribution<double> distribution( 0.0, 1.0 );
+
+        v.resize(k);
+        
+        for (int i = 0; i < k; i++) {
+
+            for (int j = 0; j < d; j++) {
+                
+                v[i].push_back( distribution(generator) );
+            }
+        }
+    }
+    
+    // Ftiaxnoume ta g
+    g.resize( L );
+    for (int i = 0; i < L; i++) {
+        
+        for (int j = 0; j < k; j++) {
+            
+            int h = rand() % k;
+
+            // Oso yparxei h hash tote dialegei epomeni
+            while( find( g[i].begin(), g[i].end(), h ) != g[i].end() )
+            {
+                h = rand() % k;
+            }
+
+            g[i].push_back(h);
+        }
+    }
+
 }
 
-unsigned int h( const vector<unsigned long> &p )
+unsigned int h_func( const vector<unsigned long> &p, int i )
 {
-    default_random_engine generator;
-    normal_distribution<double> distribution( 0.0, 1.0 );
-    
-    double t = distribution(generator);
-    
-    // [0,w)
-    while( t < 0.0 || t >= window )
-        t = distribution(generator);
     
     double dot_product=0.0;
-    double v;
     
     // Diasxizoume to dianisma p gia na ypologisoume to ginomeno p*v
     // d einai kathe oros
-    for( auto d : p )
+    for( int j=0; j<p.size(); j++ )
     {
-        v = distribution(generator);
-        
-        // Isws na min thelei thetikous mono
-        while( t < 0.0 )
-            v = distribution(generator);
-        
-        dot_product += d * v;
+        dot_product += p[j] * v[i][j];
     }
     
-    return (unsigned int) floor( (dot_product + t) / window );
+    return (unsigned int) floor( (dot_product + t[i]) / window );
 }
 
-unsigned int g( const vector<unsigned long> &p, unsigned int TableSize )
+unsigned int g_func( const vector<unsigned long> &p, unsigned int TableSize, int i)
 {
     unsigned long sum=0;
     
-    for( auto ri : r )
+    for( int j=0; j<g[0].size(); j++ )
     {
-        sum += ri * h(p);
+        sum += r[j] * h_func(p, g[i][j]);
     }
     
     return (unsigned int) ((sum % M) % TableSize);
 }
 
+
+/*======================================================*/
+
+
+pair< string, vector<unsigned long>> * VectorData::insert(string id, const vector<unsigned long> &v )
+{
+    vectors.push_back( make_pair( id, v) );
+    
+    // Pairnoume to teleutaio stoixeio (diladi auto pou molis mmpike)
+    // gia na mathoume tin dieuthinsi mnimis tou
+    pair< string, vector<unsigned long>> &p = vectors.back();
+    
+    // epistrefoume tin DM tou
+    return &p;
+}
+
+unsigned int VectorData::size()
+{
+    return vectors.size();
+}
+
+
+/*=======================================================*/
 
 HashTable::HashTable(int L, unsigned int TableSize)
 {
@@ -102,7 +160,11 @@ HashTable::HashTable(int L, unsigned int TableSize)
     }
 }
 
-void HashTable::insert( string id, vector<unsigned long> &p )
+void HashTable::insert( int l, string id, vector<unsigned long> &p )
 {
-    
+    // An to l einai stous pinakes katakermatismou
+    if( l < this->L )
+    {
+        
+    }
 }

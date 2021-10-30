@@ -34,7 +34,7 @@ void preprocessing(string filename, int L)
             // Gia kathe pinaka katakermatismou
             for (int i = 0; i < L; i++) {
 
-                hashTables->insert( id, p );
+                //hashTables->insert( id, p );
             }
 
                         // paei ston pinaka
