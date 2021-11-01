@@ -12,6 +12,7 @@ using namespace std;
 
 void preprocessing(string filename, int L);
 void read_configuration(string filename);
+int extractIntegerFromString(string str);
 
 #endif
 
