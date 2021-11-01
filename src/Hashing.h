@@ -12,10 +12,10 @@ using namespace std;
 class VectorData
 {
     private:
-    list< pair< string, vector<unsigned long> > >   vectors;
+    list<pair<string, vector<unsigned long>>> vectors;
     
     public:
-        pair< string, vector<unsigned long>> * insert(string id, const vector<unsigned long> &v );
+        pair<string, vector<unsigned long>> * insert(string id, const vector<unsigned long> &v );
         unsigned int size();
 };
 
@@ -25,7 +25,7 @@ class HashTable
         int L;
         unsigned int TableSize;
         
-        vector<vector<vector<pair< unsigned int, pair< string, vector<unsigned long>> * >>>> hashTables;
+        vector<vector<vector<pair<unsigned int, pair<string, vector<unsigned long>> * >>>> hashTables;
     
     public:
     

@@ -19,7 +19,7 @@
 
 int window;     // w
 vector<int> r;
-vector<vector<int>> g;
+vector<vector<int>> g; // {[1,2,3][3,5,3][5,6,3][9,4,5]} = {[r1*h1+r2*h2 etc][r1*h3+r2*h5 etc], etc.. }
 vector<double> t;
 vector<vector<double>> v;
 
@@ -34,10 +34,10 @@ void init_hashing(int k, int L, int d, unsigned int TableSize)
     
     window = rand() % 5 + 2;
     
-    hashTables = new HashTable( L, TableSize );
+    hashTables = new HashTable(L, TableSize);
     
     
-    // Ftiaxnoume ta ri
+    //For each h(p) function creat k static r. 
     {
         default_random_engine generator;
         uniform_int_distribution<int> distribution( 1, 10 );
@@ -65,26 +65,29 @@ void init_hashing(int k, int L, int d, unsigned int TableSize)
         normal_distribution<double> distribution( 0.0, 1.0 );
 
         v.resize(k);
-        
+
+        /*
+        [[4,5,6][2,4,5][][]]
+        ****k*****
+        */
         for (int i = 0; i < k; i++) {
 
             for (int j = 0; j < d; j++) {
                 
-                v[i].push_back( distribution(generator) );
+                v[i].push_back(distribution(generator));
             }
         }
     }
     
     // Ftiaxnoume ta g
-    g.resize( L );
+    g.resize(L);
     for (int i = 0; i < L; i++) {
         
         for (int j = 0; j < k; j++) {
             
             int h = rand() % k;
 
-            // Oso yparxei h hash tote dialegei epomeni
-            while( find( g[i].begin(), g[i].end(), h ) != g[i].end() )
+            while( find( g[i].begin(), g[i].end(), h ) != g[i].end() ) //if already exist...
             {
                 h = rand() % k;
             }
@@ -95,7 +98,7 @@ void init_hashing(int k, int L, int d, unsigned int TableSize)
 
 }
 
-unsigned int h_func( const vector<unsigned long> &p, int i )
+unsigned int h_func( const vector<unsigned long> &p, int i)
 {
     
     double dot_product=0.0;
@@ -126,13 +129,13 @@ unsigned int g_func( const vector<unsigned long> &p, unsigned int TableSize, int
 /*======================================================*/
 
 
-pair< string, vector<unsigned long>> * VectorData::insert(string id, const vector<unsigned long> &v )
+pair<string, vector<unsigned long>> * VectorData::insert(string id, const vector<unsigned long> &v )
 {
-    vectors.push_back( make_pair( id, v) );
+    vectors.push_back(make_pair( id, v));
     
     // Pairnoume to teleutaio stoixeio (diladi auto pou molis mmpike)
     // gia na mathoume tin dieuthinsi mnimis tou
-    pair< string, vector<unsigned long>> &p = vectors.back();
+    pair<string, vector<unsigned long>> &p = vectors.back();
     
     // epistrefoume tin DM tou
     return &p;

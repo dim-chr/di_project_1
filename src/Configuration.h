@@ -1,6 +1,9 @@
-
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
+
+#include <string>
+#include <algorithm>
+using namespace std; 
 
 /*
 Configuration class follows a Singleton pattern structure
@@ -13,7 +16,7 @@ class Configuration
     /*
     We will save all the configuration inside a private vector.
     */
-    std::vector<int> data;
+    vector<int> data;
 
     Configuration()
     {
@@ -41,7 +44,7 @@ class Configuration
         return instance;
     }
 
-    std::vector<int> getData()
+    vector<int> getData()
     {
         return this->data;
     }
@@ -57,6 +60,15 @@ class Configuration
         max_number_M_hypercube = data[3];
         number_of_hypercube_dimensions = data[4];
         number_of_probes = data[5];
+    }
+    void printData()
+    {
+        cout << number_of_clusters << endl;
+        cout << number_of_vector_hash_tables << endl;
+        cout << number_of_vector_hash_functions << endl;
+        cout << max_number_M_hypercube << endl;
+        cout << number_of_hypercube_dimensions << endl;
+        cout << number_of_probes << endl;
     }
 };
 
