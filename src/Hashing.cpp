@@ -19,7 +19,7 @@
 
 int window;     // w
 vector<int> r;
-vector<vector<int>> g;
+vector<vector<int>> g; // {[1,2,3][3,5,3][5,6,3][9,4,5]} = {[r1*h1+r2*h2 etc][r1*h3+r2*h5 etc], etc.. }
 vector<double> t;
 vector<vector<double>> v;
 
@@ -38,6 +38,7 @@ void init_hashing(int k, int L, int d, unsigned int TableSize)
     hashTables = new HashTable(L, TableSize);
     
     
+
     // Initialize the 'r' vector that will be used by every amplified hash function 'g(p)'
     {
         default_random_engine generator;
@@ -67,7 +68,11 @@ void init_hashing(int k, int L, int d, unsigned int TableSize)
         normal_distribution<double> distribution( 0.0, 1.0 );
 
         v.resize(k);
-        
+
+        /*
+        [[4,5,6][2,4,5][][]]
+        ****k*****
+        */
         for (int i = 0; i < k; i++) {
 
             for (int j = 0; j < d; j++) {
@@ -77,9 +82,11 @@ void init_hashing(int k, int L, int d, unsigned int TableSize)
         }
     }
     
+
     // Initialize the 'g' vectors
 	// There will be L 'g' vectors in total and each one stores the order in which the h(p) functions will be multiplied with the 'ri' numbers
 	// E.g k=4, L=5, g[0]=[0,1,3,2] then g1(p)=((r1*h1(p)+r2*h2(p)+r3*h4(p)+r4*h3(p)) mod M) mod TableSize
+
     g.resize(L);
     for (int i = 0; i < L; i++) {
         
@@ -99,8 +106,10 @@ void init_hashing(int k, int L, int d, unsigned int TableSize)
 
 }
 
+
 // This is the h(p) hash function
 unsigned int h_func(const vector<unsigned long> &p, int i)
+
 {
     
     double dot_product=0.0;
@@ -131,6 +140,7 @@ unsigned int g_func(const vector<unsigned long> &p, unsigned int TableSize, int 
 
 /*======================================================*/
 
+
 // Function that is used to insert each vector in the list
 pair<string, vector<unsigned long>> * VectorData::insert(string id, const vector<unsigned long> &v)
 {
@@ -138,6 +148,7 @@ pair<string, vector<unsigned long>> * VectorData::insert(string id, const vector
     
     // Get the item that was just inserted in the list
     pair< string, vector<unsigned long>> &p = vectors.back();
+
     
     // Return the item's address
     return &p;

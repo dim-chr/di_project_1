@@ -51,7 +51,9 @@ int main(int argc, char** argv)
 
     // Filtrarisma grammis entolwn
     //....
+    conf_file = "cluster.conf";
     Configuration *conf = conf->getInstace();
+    cout << "main top" << endl;
     read_configuration("../dir/"+conf_file);
 
     /*

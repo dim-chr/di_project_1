@@ -1,4 +1,6 @@
 #include "read_input.h"
+#include <math.h>
+#include <sstream>
 #include "Configuration.h"
 #include "Hashing.h"
 
@@ -54,14 +56,47 @@ void read_configuration(string filename)
     Configuration *c = c->getInstace();
 
     ifstream infile(filename);
-    int cluster_data; 
+    string  attr; 
+    int val = 0;
 
-    while (infile >> cluster_data)
-    {
-        c->setData(cluster_data);
+    while (getline(infile, attr))
+    {   
+        /*
+        Getting the integer value from each file line. 
+        If not exist, it returns 0.
+        Then setting the data to the object.
+        */
+        val = extractIntegerFromString(attr); 
+        c->setData(val); 
     }
-    c->globalDataInit();
     
+    c->globalDataInit();
+    //c->printData();
     
     infile.close();
+}
+
+
+int extractIntegerFromString(string str)
+{
+    stringstream ss;    
+  
+    /* Storing the whole string into string stream */
+    ss << str;
+  
+    /* Running loop till the end of the stream */
+    string temp;
+    int found = 0;
+    while (!ss.eof()) {
+  
+        /* extracting word by word from stream */
+        ss >> temp;
+  
+        /* Checking the given word is integer or not */
+        if (stringstream(temp) >> found)
+            return found;
+        /* To save from space at the end of string */
+        temp = "";        
+    }
+    return 0;
 }
