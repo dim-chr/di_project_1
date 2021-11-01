@@ -33,16 +33,17 @@ void preprocessing(string filename, int L)
                 token = strtok (NULL, " \t");
             }
 
+            pair<string, vector<unsigned long>> * vectorDataPointer =  vectorData->insert( id, p );
+            
             // Gia kathe pinaka katakermatismou
             for (int i = 0; i < L; i++) {
 
-                //hashTables->insert( id, p );
+                hashTables->insert( i, p, vectorDataPointer );
             }
 
-                        // paei ston pinaka
-                        // ....
 
-                        // adeiazw to p
+
+            // adeiazw to p
             delete[] buff;
             p.clear();
         }
@@ -99,4 +100,76 @@ int extractIntegerFromString(string str)
         temp = "";        
     }
     return 0;
+}
+
+
+void read_queries( string input, string output, int N, double R )
+{
+    vector<unsigned long> q;
+    
+    // anoigw ta arxceia
+    ifstream inputFile(input);
+    
+    ofstream outputFile(output);
+
+    if (inputFile)
+    {
+        string line;
+
+        // GIa kathe grammi
+        while (getline(inputFile, line))
+        {
+            char* buff = new char[line.length()+1];
+            strcpy(buff, line.c_str());
+            char* token = strtok(buff," \t");
+
+            char *id = token;
+
+            token = strtok(buff," \t");
+            // gia kathe diastasi - syntetagmeni
+            while (token != NULL)
+            {
+                q.push_back(atoi(token));
+                token = strtok (NULL, " \t");
+            }
+
+            // Metraw xrono
+            vector<pair<string, double>> nn = hashTables->findNN( q, N );
+            // Stamatwn na metraw xrono
+
+            // Metraw xrono
+            vector<double> bf =  vectorData->findRealDistBruteForce( q,N );
+            // Stamatwn na metraw xrono
+            
+            vector<string> rs = hashTables->rangeSearch(q, R);
+            
+            outputFile << "Querry: " << id << endl;
+                    
+            unsigned int ith=1;
+            for( unsigned int i=0; i<nn.size(); i++ )
+            {
+                outputFile << "Nearest neighbor-"<< ith << ": " << nn[i].first << endl;
+                outputFile << "distanceLSH: "<< nn[i].second << endl;
+                outputFile << "distanceTrue: "<< bf[i] << endl;
+
+                ith++;
+            }
+            
+            outputFile << "tLSH:" << endl;
+            outputFile << "tTrue:" << endl;
+            
+            outputFile << "R-near neighbors:" << endl;
+            for( auto s : rs )
+            {
+                outputFile << s << endl;
+            }
+            
+            // adeiazw to p
+            delete[] buff;
+            q.clear();
+        }
+
+        inputFile.close();
+        outputFile.close();
+    }
 }

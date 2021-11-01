@@ -1,5 +1,6 @@
 
 #include "Hashing.h"
+#include "Euclidean.h"
 
 #include <cstdlib>
 #include <ctime>
@@ -11,7 +12,7 @@
  * 
  * 
  * 
- * 
+ * TODO: Svinoume to vectorData pou egine me new
  * TODO: Svinoume to hashTbales pou egine me new
  * */
 
@@ -24,6 +25,7 @@ vector<double> t;
 vector<vector<double>> v;
 
 HashTable *hashTables;
+VectorData *vectorData;
 
 using namespace std;
 
@@ -36,7 +38,7 @@ void init_hashing(int k, int L, int d, unsigned int TableSize)
     window = rand() % 5 + 2;
     
     hashTables = new HashTable(L, TableSize);
-    
+    vectorData = new VectorData();
     
 
     // Initialize the 'r' vector that will be used by every amplified hash function 'g(p)'
@@ -134,7 +136,7 @@ unsigned int g_func(const vector<unsigned long> &p, unsigned int TableSize, int 
         sum += r[j] * h_func(p, g[i][j]);
     }
     
-    return (unsigned int) ((sum % M) % TableSize);
+    return (unsigned int) (sum % M);
 }
 
 
@@ -160,6 +162,23 @@ unsigned int VectorData::size()
     return vectors.size();
 }
 
+vector<double> VectorData::findRealDistBruteForce( vector<unsigned long> &q, int N )
+{
+    vector<double> b;
+    
+    // GIa kathe stoixeio tis listas
+    for(auto candidate : vectors)
+    {
+        vector<unsigned long> &p = candidate.second;
+        b.push_back( euclidean_distance( p , q ) );
+    }
+    
+    sort( b.begin(), b.end() );
+    
+    b.resize( N );
+    
+    return b;
+}
 
 /*=======================================================*/
 
@@ -178,13 +197,73 @@ HashTable::HashTable(int L, unsigned int TableSize)
     }
 }
 
-void HashTable::insert(int l, string id, vector<unsigned long> &p)
+void HashTable::insert(int l, vector<unsigned long> &p, pair<string, vector<unsigned long>> * vectorPointer)
 {
     // An to l einai stous pinakes katakermatismou
     if(l < this->L)
     {
-        hashValue = g_func(p, this->TableSize, l);
-		
-		hashTables[l][hashValue].push_back();
+        unsigned int hashValue = g_func(p, this->TableSize, l);
+        hashTables[l][hashValue % TableSize].push_back( make_pair( hashValue, vectorPointer ) );
     }
+}
+
+bool sortbyDist(const pair<string, double> &a, const pair<string, double> &b)
+{
+    return a.second < b.second;
+}
+
+vector<pair<string, double>> HashTable::findNN( vector<unsigned long> &q, int N )
+{
+    vector<pair<string, double>> b;
+    
+    // Each hash table
+    for (int i = 0; i < L; i++) {
+        
+        unsigned int hashValue = g_func(q, this->TableSize, i);
+        
+        // GIa kathe stoixeio tou kouva
+        for(auto candidate : hashTables[i][hashValue % TableSize])
+        {
+            string id = candidate.second->first;
+            vector<unsigned long> &p = candidate.second->second;
+            
+            b.push_back( make_pair( id , euclidean_distance( p , q ) ) );
+        }
+    }
+    
+    // Taxinomisi gia na exw ta pio kontina simeia
+    sort( b.begin(), b.end(), sortbyDist );
+    
+    // Kratame ta N pio kontina
+    if( b.size() > N ){
+        b.resize( N );
+    }
+    
+    return b;
+}
+
+
+vector<string> HashTable::rangeSearch( vector<unsigned long> &q, double R )
+{
+    vector<string> b;
+    
+    // Each hash table
+    for (int i = 0; i < L; i++) {
+        
+        unsigned int hashValue = g_func(q, this->TableSize, i);
+        
+        // GIa kathe stoixeio tou kouva
+        for(auto candidate : hashTables[i][hashValue % TableSize])
+        {
+            string id = candidate.second->first;
+            vector<unsigned long> &p = candidate.second->second;
+            
+            if(euclidean_distance( p , q ) < R)
+            {
+                b.push_back( id );
+            }
+        }
+    }
+    
+    return b;
 }
