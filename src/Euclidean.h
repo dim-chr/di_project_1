@@ -8,5 +8,5 @@ using namespace std;
 
 double euclidean_distance( const vector<unsigned long> &p, const vector<unsigned long> &q );
 
-#endif /* EUCLIDEAN_H */
+#endif
 

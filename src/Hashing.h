@@ -19,7 +19,7 @@ class VectorData
     public:
         pair<string, vector<unsigned long>> * insert(string id, const vector<unsigned long> &v );  // Function that is used to insert each vector in the list
         unsigned int size();  // Function that returns the size of the list
-        vector<double> findRealDistBruteForce( vector<unsigned long> &q, int N );
+        vector<double> findRealDistBruteForce(vector<unsigned long> &q, int N);
 };
 
 // Class that contains all the hash tables that will be used, as well as the number ('L') of hash tables and the size ('TableSize') of each one
@@ -38,7 +38,7 @@ class HashTable
     public:
     
         HashTable(int L, unsigned int TableSize);  // Constructor
-        void insert(int l, vector<unsigned long> &p, pair<string, vector<unsigned long>> * vectorPointer);  // Function that inserts an item in the hash table
+        void insert(int l, vector<unsigned long> &p, pair<string, vector<unsigned long>> * vectorPointer);  // Function that inserts an item in one of the hash tables
         vector<pair<string, double>> findNN( vector<unsigned long> &q, int N );
         vector<string> rangeSearch( vector<unsigned long> &q, double R );
 };

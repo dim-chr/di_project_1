@@ -18,9 +18,9 @@
 
 #define M 4294967291        // 2^32 - 5
 
-int window;     // w
+int window;     // 'w' variable that is used by the h(p) hash functions
 vector<int> r;
-vector<vector<int>> g; // {[1,2,3][3,5,3][5,6,3][9,4,5]} = {[r1*h1+r2*h2 etc][r1*h3+r2*h5 etc], etc.. }
+vector<vector<int>> g;
 vector<double> t;
 vector<vector<double>> v;
 
@@ -162,20 +162,23 @@ unsigned int VectorData::size()
     return vectors.size();
 }
 
+// Function that finds the real distances between query point 'q' and its N nearest neighbors using exhaustive search
 vector<double> VectorData::findRealDistBruteForce( vector<unsigned long> &q, int N )
 {
     vector<double> b;
     
-    // GIa kathe stoixeio tis listas
+    // For every point 'p' calculate its distance from 'q'
     for(auto candidate : vectors)
     {
         vector<unsigned long> &p = candidate.second;
-        b.push_back( euclidean_distance( p , q ) );
+        b.push_back(euclidean_distance(p, q));
     }
     
-    sort( b.begin(), b.end() );
+	// Sort the vector 'b' to find the shortest distances
+    sort(b.begin(), b.end());
     
-    b.resize( N );
+	// Only keep the N shortest distances
+    b.resize(N);
     
     return b;
 }
@@ -197,70 +200,77 @@ HashTable::HashTable(int L, unsigned int TableSize)
     }
 }
 
-void HashTable::insert(int l, vector<unsigned long> &p, pair<string, vector<unsigned long>> * vectorPointer)
+// Function that inserts an item in one of the hash tables
+void HashTable::insert(int i, vector<unsigned long> &p, pair<string, vector<unsigned long>> * vectorPointer)
 {
-    // An to l einai stous pinakes katakermatismou
-    if(l < this->L)
+    // Argument 'i' needs to be smaller than 'L' because the amplified hash function gi(p), 0<= i <=L, will be called
+    if(i < this->L)
     {
-        unsigned int hashValue = g_func(p, this->TableSize, l);
-        hashTables[l][hashValue % TableSize].push_back( make_pair( hashValue, vectorPointer ) );
+        unsigned int hashValue = g_func(p, this->TableSize, i);
+        hashTables[i][hashValue % TableSize].push_back(make_pair(hashValue, vectorPointer));
     }
 }
 
+// Function that is given as an argument to the 'sort' function in order to sort a vector that contains pairs
 bool sortbyDist(const pair<string, double> &a, const pair<string, double> &b)
 {
     return a.second < b.second;
 }
 
-vector<pair<string, double>> HashTable::findNN( vector<unsigned long> &q, int N )
+// Function that finds the N approximate nearest neighbors
+vector<pair<string, double>> HashTable::findNN(vector<unsigned long> &q, int N)
 {
     vector<pair<string, double>> b;
     
-    // Each hash table
+    // For each hash table
     for (int i = 0; i < L; i++) {
         
+		// Get the bucket that query 'q' belongs in
         unsigned int hashValue = g_func(q, this->TableSize, i);
         
-        // GIa kathe stoixeio tou kouva
+        // For each item in the bucket
         for(auto candidate : hashTables[i][hashValue % TableSize])
         {
-            string id = candidate.second->first;
-            vector<unsigned long> &p = candidate.second->second;
+            string id = candidate.second->first;  // Get the 'item_id' of the point
+            vector<unsigned long> &p = candidate.second->second;  // Get the coordinates of the point
             
-            b.push_back( make_pair( id , euclidean_distance( p , q ) ) );
+            b.push_back(make_pair(id , euclidean_distance(p, q)));  // Make the 'item_id' and the coordiantes a pair and insert it in the vector 'b'
         }
     }
     
-    // Taxinomisi gia na exw ta pio kontina simeia
-    sort( b.begin(), b.end(), sortbyDist );
+    // Sort the vector 'b' to find the shortest distances
+    sort(b.begin(), b.end(), sortbyDist);
     
-    // Kratame ta N pio kontina
-    if( b.size() > N ){
-        b.resize( N );
+    // Only keep the N shortest distances
+    if(b.size() > N){
+        b.resize(N);
     }
     
     return b;
 }
 
-
-vector<string> HashTable::rangeSearch( vector<unsigned long> &q, double R )
+// Function that finds all the points within a certain radius 'R' of query 'q'
+vector<string> HashTable::rangeSearch(vector<unsigned long> &q, double R)
 {
     vector<string> b;
     
-    // Each hash table
+    // For each hash table
     for (int i = 0; i < L; i++) {
         
+		// Get the bucket that query 'q' belongs in
         unsigned int hashValue = g_func(q, this->TableSize, i);
         
-        // GIa kathe stoixeio tou kouva
+        // For each item in the bucket
         for(auto candidate : hashTables[i][hashValue % TableSize])
         {
-            string id = candidate.second->first;
-            vector<unsigned long> &p = candidate.second->second;
+            string id = candidate.second->first;  // Get the 'item_id' of the point
+            vector<unsigned long> &p = candidate.second->second;  // Get the coordinates of the point
             
-            if(euclidean_distance( p , q ) < R)
+			// If the euclidean distance of 'p' from 'q' is smaller than radius 'R' then 'p' is within that radius
+			// Then the 'item_id' of 'p' is inserted in the vector 'b'
+            if(euclidean_distance(p, q) < R)
             {
-                b.push_back( id );
+                b.push_back(id);
             }
         }
     }

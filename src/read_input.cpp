@@ -1,6 +1,7 @@
 #include "read_input.h"
 #include <math.h>
 #include <sstream>
+#include <chrono>
 #include "Configuration.h"
 #include "Hashing.h"
 
@@ -33,12 +34,12 @@ void preprocessing(string filename, int L)
                 token = strtok (NULL, " \t");
             }
 
-            pair<string, vector<unsigned long>> * vectorDataPointer =  vectorData->insert( id, p );
+            pair<string, vector<unsigned long>> * vectorDataPointer =  vectorData->insert(id, p);
             
             // Gia kathe pinaka katakermatismou
             for (int i = 0; i < L; i++) {
 
-                hashTables->insert( i, p, vectorDataPointer );
+                hashTables->insert(i, p, vectorDataPointer);
             }
 
 
@@ -103,7 +104,7 @@ int extractIntegerFromString(string str)
 }
 
 
-void read_queries( string input, string output, int N, double R )
+void read_queries(string input, string output, int N, double R)
 {
     vector<unsigned long> q;
     
@@ -133,13 +134,13 @@ void read_queries( string input, string output, int N, double R )
                 token = strtok (NULL, " \t");
             }
 
-            // Metraw xrono
-            vector<pair<string, double>> nn = hashTables->findNN( q, N );
-            // Stamatwn na metraw xrono
+			auto startLSH = chrono::steady_clock::now();
+            vector<pair<string, double>> nn = hashTables->findNN(q, N);
+			auto endLSH = chrono::steady_clock::now();
 
-            // Metraw xrono
-            vector<double> bf =  vectorData->findRealDistBruteForce( q,N );
-            // Stamatwn na metraw xrono
+			auto startRealDist = chrono::steady_clock::now();
+            vector<double> bf =  vectorData->findRealDistBruteForce(q, N);
+			auto endRealDist = chrono::steady_clock::now();
             
             vector<string> rs = hashTables->rangeSearch(q, R);
             
@@ -155,11 +156,11 @@ void read_queries( string input, string output, int N, double R )
                 ith++;
             }
             
-            outputFile << "tLSH:" << endl;
-            outputFile << "tTrue:" << endl;
+            outputFile << "tLSH: " << chrono::duration_cast<chrono::seconds>(endLSH - startLSH).count() << endl;
+            outputFile << "tTrue: " << chrono::duration_cast<chrono::seconds>(endRealDist - startRealDist).count() << endl;
             
             outputFile << "R-near neighbors:" << endl;
-            for( auto s : rs )
+            for(auto s : rs)
             {
                 outputFile << s << endl;
             }
