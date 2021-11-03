@@ -13,6 +13,7 @@ using namespace std;
 void preprocessing(string filename, int L);
 void read_configuration(string filename);
 int extractIntegerFromString(string str);
+void read_queries(string input, string output, int N, double R);
 
 #endif
 

@@ -5,46 +5,46 @@
 #include "Configuration.h"
 #include "Hashing.h"
 
-
+// Function that reads all the points from the input file and saves them in the appropriate data structures
 void preprocessing(string filename, int L)
 {
     vector<unsigned long> p;
     
-    // anoigw to arxceio
+    // Open the input file
     ifstream inputFile(filename);
 
     if (inputFile)
     {
         string line;
 
-        // GIa kathe grammi
+        // Read every line of the file
         while (getline(inputFile, line))
         {
             char* buff = new char[line.length()+1];
             strcpy(buff, line.c_str());
             char* token = strtok(buff," \t");
 
-            char *id = token;
+            char *id = token;  // This is the 'item_id' of the point
 
             token = strtok(buff," \t");
-            // gia kathe diastasi - syntetagmeni
+
+            // Read all the coordinates of the point and store them in vector 'p'
             while (token != NULL)
             {
                 p.push_back(atoi(token));
                 token = strtok (NULL, " \t");
             }
 
+            // Insert the 'item_id' of the point and its coordinates in the 'vectorData' list
+            // The 'VectorData::insert' function returns the address of the pair (id, p) that was just inserted in the list
             pair<string, vector<unsigned long>> * vectorDataPointer =  vectorData->insert(id, p);
             
-            // Gia kathe pinaka katakermatismou
+            // Insert the point in every hash table
             for (int i = 0; i < L; i++) {
 
                 hashTables->insert(i, p, vectorDataPointer);
             }
 
-
-
-            // adeiazw to p
             delete[] buff;
             p.clear();
         }
@@ -104,11 +104,13 @@ int extractIntegerFromString(string str)
 }
 
 
+// Function that reads all the query points from the query file and executes the LSH and Range Search algorithms
+// It also generates the output file with the results
 void read_queries(string input, string output, int N, double R)
 {
     vector<unsigned long> q;
     
-    // anoigw ta arxceia
+    // Open the input and output files
     ifstream inputFile(input);
     
     ofstream outputFile(output);
@@ -117,7 +119,7 @@ void read_queries(string input, string output, int N, double R)
     {
         string line;
 
-        // GIa kathe grammi
+        // Read every line of the file
         while (getline(inputFile, line))
         {
             char* buff = new char[line.length()+1];
@@ -127,33 +129,38 @@ void read_queries(string input, string output, int N, double R)
             char *id = token;
 
             token = strtok(buff," \t");
-            // gia kathe diastasi - syntetagmeni
+
+            // Read all the coordinates of the query and store them in vector 'q'
             while (token != NULL)
             {
                 q.push_back(atoi(token));
                 token = strtok (NULL, " \t");
             }
 
+            // Find the N nearest neighbors using the LSH algorithm, their distance from 'q' and the time it takes to find them
 			auto startLSH = chrono::steady_clock::now();
             vector<pair<string, double>> nn = hashTables->findNN(q, N);
 			auto endLSH = chrono::steady_clock::now();
 
+            // Find the real distances of the N nearest neighbors from 'q' and the time it takes to find them
 			auto startRealDist = chrono::steady_clock::now();
             vector<double> bf =  vectorData->findRealDistBruteForce(q, N);
 			auto endRealDist = chrono::steady_clock::now();
             
+            // Find all the points within radius 'R' of 'q'
             vector<string> rs = hashTables->rangeSearch(q, R);
             
             outputFile << "Querry: " << id << endl;
-                    
-            unsigned int ith=1;
-            for( unsigned int i=0; i<nn.size(); i++ )
+            
+            // Write all the results in the output file
+            unsigned int j = 1;
+            for(unsigned int i = 0; i < nn.size(); i++)
             {
-                outputFile << "Nearest neighbor-"<< ith << ": " << nn[i].first << endl;
+                outputFile << "Nearest neighbor-"<< j << ": " << nn[i].first << endl;
                 outputFile << "distanceLSH: "<< nn[i].second << endl;
                 outputFile << "distanceTrue: "<< bf[i] << endl;
 
-                ith++;
+                j++;
             }
             
             outputFile << "tLSH: " << chrono::duration_cast<chrono::seconds>(endLSH - startLSH).count() << endl;
@@ -165,7 +172,6 @@ void read_queries(string input, string output, int N, double R)
                 outputFile << s << endl;
             }
             
-            // adeiazw to p
             delete[] buff;
             q.clear();
         }

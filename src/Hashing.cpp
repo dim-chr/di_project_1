@@ -35,7 +35,7 @@ void init_hashing(int k, int L, int d, unsigned int TableSize)
     // Init
     srand(time(0));
     
-    window = rand() % 5 + 2;
+    window = 400; //rand() % 5 + 2;
     
     hashTables = new HashTable(L, TableSize);
     vectorData = new VectorData();
@@ -67,14 +67,10 @@ void init_hashing(int k, int L, int d, unsigned int TableSize)
 	// We need k vectors 'v', one for each hash function
     {
         default_random_engine generator;
-        normal_distribution<double> distribution( 0.0, 1.0 );
+        normal_distribution<double> distribution(0.0, 1.0);
 
         v.resize(k);
 
-        /*
-        [[4,5,6][2,4,5][][]]
-        ****k*****
-        */
         for (int i = 0; i < k; i++) {
 
             for (int j = 0; j < d; j++) {
@@ -83,12 +79,10 @@ void init_hashing(int k, int L, int d, unsigned int TableSize)
             }
         }
     }
-    
 
     // Initialize the 'g' vectors
 	// There will be L 'g' vectors in total and each one stores the order in which the h(p) functions will be multiplied with the 'ri' numbers
 	// E.g k=4, L=5, g[0]=[0,1,3,2] then g1(p)=((r1*h1(p)+r2*h2(p)+r3*h4(p)+r4*h3(p)) mod M) mod TableSize
-
     g.resize(L);
     for (int i = 0; i < L; i++) {
         
@@ -149,8 +143,7 @@ pair<string, vector<unsigned long>> * VectorData::insert(string id, const vector
     vectors.push_back(make_pair(id, v));  // Insert the 'item_id' of vector 'p' and its coordinates
     
     // Get the item that was just inserted in the list
-    pair< string, vector<unsigned long>> &p = vectors.back();
-
+    pair< string, vector<unsigned long>>& p = vectors.back();
     
     // Return the item's address
     return &p;
@@ -181,6 +174,11 @@ vector<double> VectorData::findRealDistBruteForce( vector<unsigned long> &q, int
     b.resize(N);
     
     return b;
+}
+
+void VectorData::deleteData()
+{
+    delete vectorData;
 }
 
 /*=======================================================*/
@@ -276,4 +274,9 @@ vector<string> HashTable::rangeSearch(vector<unsigned long> &q, double R)
     }
     
     return b;
+}
+
+void HashTable::deleteHash()
+{
+    
 }
