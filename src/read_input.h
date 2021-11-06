@@ -10,9 +10,10 @@
 
 using namespace std;
 
-void preprocessing(string filename, int L);
+void preprocessing(string , int );
 void read_configuration(string filename);
 int extractIntegerFromString(string str);
+void read_queries(string input, string output, int N, double R);
 
 #endif
 

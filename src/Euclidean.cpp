@@ -4,7 +4,7 @@
 using namespace std;
 
 // Function that calculates the euclidean distance between two points
-double euclidean_distance( const vector<unsigned long> &p, const vector<unsigned long> &q )
+double euclidean_distance(const vector<unsigned long> &p, const vector<unsigned long> &q)
 {
     double sum = 0.0;
     
@@ -14,4 +14,17 @@ double euclidean_distance( const vector<unsigned long> &p, const vector<unsigned
     }
     
     return sqrt(sum);
+}
+
+// Function that performs the euclidean modulo operation
+unsigned int euclidean_mod(long x, long y)
+{
+    if(y != 0)
+    {
+        int r = x % y;
+
+        return r >= 0 ? r : r + abs(y);
+    }
+    
+    return 0;
 }

@@ -3,58 +3,71 @@
 #include <string>
 
 #include "read_input.h"
+#include "Hashing.h"
 #include "Configuration.h"
 
 using namespace std;
-
-string input_file;
-string conf_file;
-string out_file;
-int complete;
-string method;
 
 Configuration *Configuration::instance = 0;
 
 int main(int argc, char** argv)
 {
-    for(int i=0; i<argc; i++)
+    string input_file = "";
+    string query_file = "";
+    string out_file = "";
+    int k = 4;
+    int L = 5;
+    int N = 1;
+    int R = 10000;
+
+    if (argc > 15)
     {
-        if(argc>2 && string(argv[i]) == "-c")
-          conf_file = argv[i+1];
+        perror("Error: Too many arguments");
+        exit(1);
+    }
+
+    for(int i = 0; i < argc; i++)
+    {
         
-        else if(argc>2 && string(argv[i]) == "-i")
+        if(argc > 2 && string(argv[i]) == "-i")
           input_file = argv[i+1];
 
-        else if(argc>2 && string(argv[i]) == "-o")
+        else if (argc > 2 && string(argv[i]) == "-q")
+            query_file = argv[i+1];
+
+        else if (argc > 2 && string(argv[i]) == "-k")
+            k = atoi(argv[i+1]);
+
+        else if (argc > 2 && string(argv[i]) == "-L")
+            L = atoi(argv[i+1]);
+
+        else if(argc > 2 && string(argv[i]) == "-o")
           out_file = argv[i+1];
-        
-        else if(argc>2 && string(argv[i]) == "-m")
-          method = argv[i+1];
 
-        else if(argc>2 && string(argv[i]) == "-complete")
-          complete = atoi(argv[i+1]);
+        else if (argc > 2 && string(argv[i]) == "-N")
+            N = atoi(argv[i+1]);
 
-        /*input error checking.
-        if (argc < 7)
-        {
-            perror("Error: Too few arguments");
-            exit(1);
-        }
-        if (argc > 7)
-        {
-            perror("Error: Too many arguments");
-            exit(1);
-        }
-        */
+        else if (argc > 2 && string(argv[i]) == "-R")
+            R = atoi(argv[i+1]);
         
     }
 
+    if (input_file == "" || query_file == "" || out_file == "")
+    {
+        perror("Error: Some file names were not given");
+        exit(1);
+    }
+
+    cout << "inputFile: " << input_file << endl;
+    cout << "outputFile: " << out_file << endl;
+    cout << "queryFile: " << query_file << endl;
+
     // Filtrarisma grammis entolwn
     //....
-    conf_file = "cluster.conf";
+    /*conf_file = "cluster.conf";
     Configuration *conf = conf->getInstace();
     cout << "main top" << endl;
-    read_configuration("../dir/"+conf_file);
+    read_configuration("../dir/"+conf_file);*/
 
     /*
     cout << conf->number_of_clusters << endl;
@@ -65,6 +78,11 @@ int main(int argc, char** argv)
     cout << conf->number_of_probes << endl;
     */
 
+    preprocessing(input_file, L);
+
+	
+	freeMemory();
+	
     return 0;
 }
 
