@@ -2,13 +2,13 @@
 #include <iostream>
 #include <string>
 
-#include "read_input.h"
-#include "Hashing.h"
-#include "Configuration.h"
+#include "Methods.h"
+#include "Tools.h"
+#include "LshHashing.h"
 
 using namespace std;
 
-Configuration *Configuration::instance = 0;
+
 
 int main(int argc, char** argv)
 {
@@ -62,26 +62,13 @@ int main(int argc, char** argv)
     cout << "outputFile: " << out_file << endl;
     cout << "queryFile: " << query_file << endl;
 
-    // Filtrarisma grammis entolwn
-    //....
-    /*conf_file = "cluster.conf";
-    Configuration *conf = conf->getInstace();
-    cout << "main top" << endl;
-    read_configuration("../dir/"+conf_file);*/
+    init_hashing_lsh(k, L, dimension(input_file), count_file_lines(input_file));
+    
+    LSH_pre_process(input_file, L);
 
-    /*
-    cout << conf->number_of_clusters << endl;
-    cout << conf->number_of_vector_hash_tables << endl;
-    cout << conf->number_of_vector_hash_functions << endl;
-    cout << conf->max_number_M_hypercube << endl;
-    cout << conf->number_of_hypercube_dimensions << endl;
-    cout << conf->number_of_probes << endl;
-    */
+    lsh(query_file, out_file, N, R);
 
-    preprocessing(input_file, L);
-
-	
-	freeMemory();
+	GarbageCollector();
 	
     return 0;
 }
