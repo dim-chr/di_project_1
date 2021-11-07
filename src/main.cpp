@@ -78,7 +78,7 @@ int main(int argc, char** argv)
     cout << conf->number_of_probes << endl;
     */
 
-    preprocessing(input_file, L);
+    //preprocessing(input_file, L);
 
 	
 	freeMemory();

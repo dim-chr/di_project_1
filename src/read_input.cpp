@@ -1,18 +1,20 @@
-#include "read_input.h"
+#define _CRT_SECURE_NO_WARNINGS
 #include <math.h>
 #include <sstream>
 #include <chrono>
+
+#include "read_input.h"
 #include "Configuration.h"
 #include "Hashing.h"
 
 // Function that reads all the points from the input file and saves them in the appropriate data structures
-#if LSH
+//#if LSH
 void preprocessing(string filename, int L)
 {
-#else
-void preprocessing(string filename, int d)
-{    
-#endif
+//#else
+//void preprocessing(string filename, int d)
+//{    
+//#endif
     vector<unsigned long> p;
     
     // Open the input file
@@ -45,14 +47,14 @@ void preprocessing(string filename, int d)
             pair<string, vector<unsigned long>> * vectorDataPointer =  vectorData->insert(id, p);
             
             // Insert the point in every hash table
-        #if LSH
+        //#if LSH
             for (int i = 0; i < L; i++) {
 
                 hashTables->insert(i, p, vectorDataPointer);
             }
-        #else
-            hashTables->insert(d, p, vectorDataPointer);
-        #endif
+        //#else
+            //hashTables->insert(d, p, vectorDataPointer);
+        //#endif
 
             delete[] buff;
             p.clear();
@@ -113,7 +115,7 @@ int extractIntegerFromString(string str)
 }
 
 
-// Function that reads all the query points from the query file and executes the LSH and Range Search algorithms
+// Function that reads all the query points from the query file and executes the ANN (LSH) and Range Search (LSH) algorithms
 // It also generates the output file with the results
 void read_queries(string input, string output, int N, double R)
 {
@@ -159,7 +161,7 @@ void read_queries(string input, string output, int N, double R)
             // Find all the points within radius 'R' of 'q'
             vector<string> rs = hashTables->rangeSearch(q, R);
             
-            outputFile << "Querry: " << id << endl;
+            outputFile << "Query: " << id << endl;
             
             // Write all the results in the output file
             unsigned int j = 1;

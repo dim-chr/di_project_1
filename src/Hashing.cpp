@@ -1,5 +1,4 @@
-#include "Hashing.h"
-#include "Euclidean.h"
+#define _CRT_SECURE_NO_WARNINGS
 
 #include <cstdlib>
 #include <ctime>
@@ -7,6 +6,9 @@
 #include <algorithm>
 #include <cmath>
 #include <map>
+
+#include "Hashing.h"
+#include "Euclidean.h"
 
 #define M 4294967291        // 2^32 - 5
 
@@ -38,7 +40,7 @@ void init_hashing_lsh(int k, int L, int d, unsigned int TableSize)
     // Initialize the 'r' vector that will be used by every amplified hash function 'g(p)'
     {
         default_random_engine generator;
-        uniform_int_distribution<int> distribution(1, 10);
+        uniform_int_distribution<int> distribution(1, INT32_MAX);
 
         for (int i = 0; i < k; i++) {
 
@@ -149,7 +151,7 @@ int h_func(const vector<unsigned long> &p, int i)
         dot_product += p[j] * v[i][j];
     }
     
-    return (int) floor( (dot_product + t[i]) / window );
+    return (int) floor((dot_product + t[i]) / window);
 }
 
 // This is the amplified hash function g(p)
@@ -228,20 +230,20 @@ HashTable::HashTable(int L, unsigned int TableSize)
 }
 
 // Function that inserts an item in one of the hash tables
-
-#if LSH
-void HashTable::insert(int i, vector<unsigned long> &p, pair<string, vector<unsigned long>> * vectorPointer)
+//#if LSH
+void HashTable::insert(int i, vector<unsigned long>& p, pair<string, vector<unsigned long>>* vectorPointer)
 {
-    
-        // Argument 'i' needs to be smaller than 'L' because the amplified hash function gi(p), 0<= i <=L, will be called
-        if(i < this->L)
-        {
-            unsigned int hashValue = g_func(p, this->TableSize, i);
-            hashTables[i][hashValue % TableSize].push_back(make_pair(hashValue, vectorPointer));
-        }
-#else
+    // Argument 'i' needs to be smaller than 'L' because the amplified hash function gi(p), 0<= i <=L, will be called
+    if (i < this->L)
+    {
+        unsigned int hashValue = g_func(p, this->TableSize, i);
+        hashTables[i][hashValue % TableSize].push_back(make_pair(hashValue, vectorPointer));
+    }
+}
+//#else
+
 // Function that inserts an item in the hash table if the hypercube is used
-void HashTable::insert(int d, vector<unsigned long> &p, pair<string, vector<unsigned long>> * vectorPointer)
+/*void HashTable::insert(int d, vector<unsigned long> &p, pair<string, vector<unsigned long>> * vectorPointer)
 {
     unsigned int bucket = 0;
     
@@ -264,8 +266,8 @@ void HashTable::insert(int d, vector<unsigned long> &p, pair<string, vector<unsi
 	// Insert the item in the correct bucket
     hashTables[0][bucket].push_back(vectorPointer);
         
-#endif
-}
+//#endif
+}*/
 
 // Function that is given as an argument to the 'sort' function in order to sort a vector that contains pairs
 bool sortbyDist(const pair<string, double> &a, const pair<string, double> &b)
@@ -273,7 +275,7 @@ bool sortbyDist(const pair<string, double> &a, const pair<string, double> &b)
     return a.second < b.second;
 }
 
-#if LSH
+//#if LSH
 // Function that finds the N approximate nearest neighbors
 vector<pair<string, double>> HashTable::findNN(vector<unsigned long> &q, int N)
 {
@@ -334,8 +336,8 @@ vector<string> HashTable::rangeSearch(vector<unsigned long> &q, double R)
     
     return b;
 }
-#else
-
+//#else
+/*******
 vector<pair<string, double>> findNN(vector<unsigned long> &q, int N)
 {
     
@@ -345,8 +347,8 @@ vector<string> rangeSearch(vector<unsigned long> &q, double R)
 {
     
 }
-
-#endif
+*********/
+//#endif
 
 void freeMemory()
 {
