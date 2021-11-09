@@ -2,6 +2,7 @@
 #define HASHING_H
 
 #include <vector>
+#include <set>
 #include <utility>
 #include <string>
 
@@ -29,8 +30,8 @@ class LSHHashTable
         
         void LSH_insert(int l, vector<unsigned long> &p, pair<string, vector<unsigned long>> * vectorPointer);  // Function that inserts an item in one of the hash tables
         vector<pair<string, double>> LSH_findNN(vector<unsigned long> &q, int N);
-        vector<string> LSH_rangeSearch(vector<unsigned long> &q, double R);
-
+        set<string> LSH_rangeSearch(vector<unsigned long> &q, double R);
+        void printHash();
 };
 
 

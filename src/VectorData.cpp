@@ -1,5 +1,6 @@
 #include "VectorData.h"
 #include "Euclidean.h"
+#include "Tools.h"
 
 #include <string>
 #include <algorithm>
@@ -24,19 +25,19 @@ unsigned int VectorData::size()
 }
 
 // Function that finds the real distances between query point 'q' and its N nearest neighbors using exhaustive search
-vector<double> VectorData::findRealDistBruteForce( vector<unsigned long> &q, int N )
+vector<pair<string, double>> VectorData::findRealDistBruteForce( vector<unsigned long> &q, int N )
 {
-    vector<double> b;
+    vector<pair<string, double>> b;
     
     // For every point 'p' calculate its distance from 'q'
     for(auto candidate : vectors)
     {
         vector<unsigned long> &p = candidate.second;
-        b.push_back(euclidean_distance(p, q));
+        b.push_back( make_pair( candidate.first, euclidean_distance(p, q)));
     }
     
 	// Sort the vector 'b' to find the shortest distances
-    sort(b.begin(), b.end());
+    sort(b.begin(), b.end(), sortbyDist);
     
 	// Only keep the N shortest distances
     b.resize(N);

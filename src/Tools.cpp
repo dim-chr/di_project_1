@@ -8,6 +8,7 @@ bool sortbyDist(const pair<string, double> &a, const pair<string, double> &b)
     return a.second < b.second;
 }
 
+/*
 void read_configuration(string filename)
 {
     Configuration *c = c->getInstace();
@@ -18,11 +19,10 @@ void read_configuration(string filename)
 
     while (getline(infile, attr))
     {   
-        /*
-        Getting the integer value from each file line. 
-        If not exist, it returns 0.
-        Then setting the data to the object.
-        */
+        
+        // Getting the integer value from each file line. 
+        // If not exist, it returns 0.
+        // Then setting the data to the object.
         val = extractIntegerFromString(attr); 
         c->setData(val); 
     }
@@ -31,30 +31,33 @@ void read_configuration(string filename)
     
     infile.close();
 }
+*/
+
+/*
 int extractIntegerFromString(string str)
 {
     stringstream ss;    
   
-    /* Storing the whole string into string stream */
+    // Storing the whole string into string stream
     ss << str;
   
-    /* Running loop till the end of the stream */
+    // Running loop till the end of the stream
     string temp;
     int found = 0;
     while (!ss.eof()) {
   
-        /* extracting word by word from stream */
+        // extracting word by word from stream
         ss >> temp;
   
-        /* Checking the given word is integer or not */
+        // Checking the given word is integer or not
         if (stringstream(temp) >> found)
             return found;
-        /* To save from space at the end of string */
+        // To save from space at the end of string
         temp = "";        
     }
     return 0;
 }
-
+*/
 
 int dimension(string filename)
 {
@@ -65,7 +68,7 @@ int dimension(string filename)
 
     getline(infile, line);
 
-    dim = count(line.begin(), line.end(), " ");
+    dim = count(line.begin(), line.end(), ' ');
     
     infile.close();
 

@@ -5,11 +5,13 @@
 #include "Tools.h"
 
 #include <cstdlib>
+#include <iostream>
 #include <ctime>
 #include <random>
 #include <algorithm>
 #include <cmath>
 #include <map>
+#include <set>
 
 #define M 4294967291        // 2^32 - 5
 
@@ -31,7 +33,7 @@ using namespace std;
 void init_hashing_lsh(int k, int L, int d, unsigned int TableSize)
 {
     // Init
-    srand(time(0));
+    srand(time(NULL));
     
     window = 400; //rand() % 5 + 2;
     
@@ -41,8 +43,8 @@ void init_hashing_lsh(int k, int L, int d, unsigned int TableSize)
 
     // Initialize the 'r' vector that will be used by every amplified hash function 'g(p)'
     {
-        default_random_engine generator;
-        uniform_int_distribution<int> distribution(1, 10);
+        default_random_engine generator(time(NULL));
+        uniform_int_distribution<int> distribution(1, INT32_MAX);
 
         for (int i = 0; i < k; i++) {
 
@@ -52,10 +54,10 @@ void init_hashing_lsh(int k, int L, int d, unsigned int TableSize)
 
     // Initialize all the random 't' numbers that will be used by the hash functions 'h(p)'
     {
-        default_random_engine generator;
+        default_random_engine generator(time(NULL));
         uniform_real_distribution<double> distribution(0, window);
 
-        for (int i = 0; i < k; i++) {
+        for (int i = 0; i < k*L; i++) {
 
             t.push_back(distribution(generator));
         }
@@ -64,12 +66,12 @@ void init_hashing_lsh(int k, int L, int d, unsigned int TableSize)
     // Initialize the all the 'v' vectors that will be used by the hash functions 'h(p)'
 	// We need k vectors 'v', one for each hash function
     {
-        default_random_engine generator;
+        default_random_engine generator(time(NULL));
         normal_distribution<double> distribution(0.0, 1.0);
 
-        v.resize(k);
+        v.resize(L*k);
 
-        for (int i = 0; i < k; i++) {
+        for (int i = 0; i < L*k; i++) {
 
             for (int j = 0; j < d; j++) {
                 
@@ -86,18 +88,9 @@ void init_hashing_lsh(int k, int L, int d, unsigned int TableSize)
         
         for (int j = 0; j < k; j++) {
             
-            int h = rand() % k;  // Get a random number from 0 to k-1
-
-            // If this number is in the g[i] vector then keep generating new ones until one that isn't already in g[i] is found
-            while(find(g[i].begin(), g[i].end(), h) != g[i].end())
-            {
-                h = rand() % k;
-            }
-
-            g[i].push_back(h);  // Insert that number in g[i]
+            g[i].push_back( j + i*k );  // Insert that number in g[i]
         }
     }
-
 }
 
 // Function that is used to initialize all the necessary variables and data structures in order to use the hash functions and the hash tables
@@ -106,7 +99,7 @@ void init_hashing_cube(int k, int d, unsigned int TableSize)
     // Init
     srand(time(0));
     
-    window = 400; //rand() % 5 + 2;
+    window = 100; //rand() % 5 + 2;
     
     C_hashTables = new CubeHashTable(1, TableSize);
     vectorData = new VectorData();
@@ -153,7 +146,7 @@ int h_func(const vector<unsigned long> &p, int i)
         dot_product += p[j] * v[i][j];
     }
     
-    return (int) floor( (dot_product + t[i]) / window );
+    return (int) floor((dot_product + t[i]) / window);
 }
 
 // This is the amplified hash function g(p)
@@ -164,10 +157,10 @@ unsigned int g_func(const vector<unsigned long> &p, unsigned int TableSize, int 
 	// Calculate the sum r1*h1(p) + r2*h2(p) +...
     for(int j=0; j<g[0].size(); j++)
     {
-        sum = (sum%M) + euclidean_mod ( r[j] * h_func(p, g[i][j]) , M) ;
+        sum = (sum % M) + euclidean_mod(r[j] * h_func(p, g[i][j]), M) ;
     }
     
-    return euclidean_mod(sum , M);
+    return euclidean_mod(sum, M);
 }
 
 // Constructors of HashTables class
@@ -203,12 +196,12 @@ CubeHashTable::CubeHashTable(int L, unsigned int TableSize)
 // Function that inserts an item in one of the hash tables
 void LSHHashTable::LSH_insert(int i, vector<unsigned long> &p, pair<string, vector<unsigned long>> * vectorPointer)
 {
-        // Argument 'i' needs to be smaller than 'L' because the amplified hash function gi(p), 0<= i <=L, will be called
-        if(i < this->L)
-        {
-            unsigned int hashValue = g_func(p, this->TableSize, i);
-            LSH_hashTables[i][hashValue % TableSize].push_back(make_pair(hashValue, vectorPointer));
-        }
+    // Argument 'i' needs to be smaller than 'L' because the amplified hash function gi(p), 0<= i <=L, will be called
+    if(i < this->L)
+    {
+        unsigned int hashValue = g_func(p, this->TableSize, i);
+        LSH_hashTables[i][hashValue % TableSize].push_back(make_pair(hashValue, vectorPointer));
+    }
 }
 // Function that inserts an item in the hash table if the hypercube is used
 void CubeHashTable::Cube_insert(int d, vector<unsigned long> &p, pair<string, vector<unsigned long>> * vectorPointer)
@@ -239,7 +232,7 @@ void CubeHashTable::Cube_insert(int d, vector<unsigned long> &p, pair<string, ve
 // Function that finds the N approximate nearest neighbors for LSH
 vector<pair<string, double>> LSHHashTable::LSH_findNN(vector<unsigned long> &q, int N)
 {
-    vector<pair<string, double>> b;
+    map<string, double> b;
     
     // For each hash table
     for (int i = 0; i < L; i++) {
@@ -250,33 +243,44 @@ vector<pair<string, double>> LSHHashTable::LSH_findNN(vector<unsigned long> &q, 
         // For each item in the bucket
         for(auto candidate : LSH_hashTables[i][hashValue % TableSize])
         {
-            string id = candidate.second->first;  // Get the 'item_id' of the point
-            vector<unsigned long> &p = candidate.second->second;  // Get the coordinates of the point
-            
-            b.push_back(make_pair(id , euclidean_distance(p, q)));  // Make the 'item_id' and the coordiantes a pair and insert it in the vector 'b'
+            if (candidate.first == hashValue)
+            {
+                string id = candidate.second->first;  // Get the 'item_id' of the point
+                vector<unsigned long>& p = candidate.second->second;  // Get the coordinates of the point
+
+                if( b.find(id) == b.end() )
+                    b[id] = euclidean_distance(p, q);  // Make the 'item_id' and the coordiantes a pair and insert it in the vector 'b'
+            }
         }
     }
     
-    // Sort the vector 'b' to find the shortest distances
-    sort(b.begin(), b.end(), sortbyDist);
-    
-    // Only keep the N shortest distances
-    if(b.size() > N){
-        b.resize(N);
+    vector<pair<string, double>> vb;
+    for(auto x : b)
+    {
+        vb.push_back( make_pair(x.first, x.second) );
     }
     
-    return b;
+    // Sort the vector 'b' to find the shortest distances
+    sort(vb.begin(), vb.end(), sortbyDist);
+    
+    // Only keep the N shortest distances
+    if(vb.size() > N){
+        vb.resize(N);
+    }
+    
+    return vb;
 }
 
 vector<pair<string, double>> CubeHashTable::Cube_findNN(vector<unsigned long> &q, int N)
 {
     vector<pair<string, double>> b; 
+    
     return b;
 }
 // Function that finds all the points within a certain radius 'R' of query 'q'
-vector<string> LSHHashTable::LSH_rangeSearch(vector<unsigned long> &q, double R)
+set<string> LSHHashTable::LSH_rangeSearch(vector<unsigned long> &q, double R)
 {
-    vector<string> b;
+    set<string> b;
     
     // For each hash table
     for (int i = 0; i < L; i++) {
@@ -290,11 +294,11 @@ vector<string> LSHHashTable::LSH_rangeSearch(vector<unsigned long> &q, double R)
             string id = candidate.second->first;  // Get the 'item_id' of the point
             vector<unsigned long> &p = candidate.second->second;  // Get the coordinates of the point
             
-			// If the euclidean distance of 'p' from 'q' is smaller than radius 'R' then 'p' is within that radius
-			// Then the 'item_id' of 'p' is inserted in the vector 'b'
+            // If the euclidean distance of 'p' from 'q' is smaller than radius 'R' then 'p' is within that radius
+            // Then the 'item_id' of 'p' is inserted in the vector 'b'
             if(euclidean_distance(p, q) < R)
             {
-                b.push_back(id);
+                b.insert(id);  //<---------
             }
         }
     }
@@ -316,4 +320,26 @@ void DeallocateMemory()
 	    delete LSH_hashTables;
     if (C_hashTables != NULL)
         delete C_hashTables;
+}
+
+void LSHHashTable::printHash( )
+{
+    ofstream out("ids.txt");
+    
+    for (int i = 0; i < L; i++)
+    {
+        out << "HashTable " << i << endl;
+        for (int j = 0; j < TableSize; j++)
+        {
+            out << "Bucket " << j;
+            for (int k = 0; k < LSH_hashTables[i][j].size(); k++)
+            {
+                out << " | ID: " << LSH_hashTables[i][j][k].first << ", Item_id: " << LSH_hashTables[i][j][k].second->first;
+            }
+            out << endl;
+        }
+        out << "\n\n";
+    }
+    
+    out.close();
 }

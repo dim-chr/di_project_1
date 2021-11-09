@@ -6,7 +6,7 @@
 
 // Function that reads all the points from the input file and saves them in the appropriate data structures
 void LSH_pre_process(string filename, int L)
-{    
+{
     vector<unsigned long> p;
     
     // Open the input file
@@ -25,7 +25,7 @@ void LSH_pre_process(string filename, int L)
 
             char *id = token;  // This is the 'item_id' of the point
 
-            token = strtok(buff," \t");
+            token = strtok(NULL," \t");
 
             // Read all the coordinates of the point and store them in vector 'p'
             while (token != NULL)
@@ -43,12 +43,15 @@ void LSH_pre_process(string filename, int L)
 
                 LSH_hashTables->LSH_insert(i, p, vectorDataPointer);
             }
+            
             delete[] buff;
             p.clear();
         }
 
         inputFile.close();
     }
+
+    LSH_hashTables->printHash();
 }
 // Function that reads all the points from the input file and saves them in the appropriate data structures
 void Cube_pre_process(string filename, int d)
@@ -71,7 +74,7 @@ void Cube_pre_process(string filename, int d)
 
             char *id = token;  // This is the 'item_id' of the point
 
-            token = strtok(buff," \t");
+            token = strtok(NULL," \t");
 
             // Read all the coordinates of the point and store them in vector 'p'
             while (token != NULL)
@@ -112,17 +115,18 @@ void lsh(string input, string output, int N, double R)
     if (inputFile)
     {
         string line;
-
+unsigned long correct=0;
+unsigned long quer=0;
         // Read every line of the file
         while (getline(inputFile, line))
-        {
+        {quer++;
             char* buff = new char[line.length()+1];
             strcpy(buff, line.c_str());
             char* token = strtok(buff," \t");
 
             char *id = token;
 
-            token = strtok(buff," \t");
+            token = strtok(NULL," \t");
 
             // Read all the coordinates of the query and store them in vector 'q'
             while (token != NULL)
@@ -132,19 +136,19 @@ void lsh(string input, string output, int N, double R)
             }
 
             // Find the N nearest neighbors using the LSH algorithm, their distance from 'q' and the time it takes to find them
-			auto startLSH = chrono::steady_clock::now();
+            auto startLSH = chrono::steady_clock::now();
             vector<pair<string, double>> nn = LSH_hashTables->LSH_findNN(q, N);
-			auto endLSH = chrono::steady_clock::now();
+            auto endLSH = chrono::steady_clock::now();
 
             // Find the real distances of the N nearest neighbors from 'q' and the time it takes to find them
-			auto startRealDist = chrono::steady_clock::now();
-            vector<double> bf =  vectorData->findRealDistBruteForce(q, N);
-			auto endRealDist = chrono::steady_clock::now();
+            auto startRealDist = chrono::steady_clock::now();
+            vector<pair<string, double>> bf =  vectorData->findRealDistBruteForce(q, N);
+            auto endRealDist = chrono::steady_clock::now();
             
             // Find all the points within radius 'R' of 'q'
-            vector<string> rs = LSH_hashTables->LSH_rangeSearch(q, R);
+            set<string> rs = LSH_hashTables->LSH_rangeSearch(q, R);
             
-            outputFile << "Querry: " << id << endl;
+            outputFile << "Query: " << id << endl;
             
             // Write all the results in the output file
             unsigned int j = 1;
@@ -152,24 +156,25 @@ void lsh(string input, string output, int N, double R)
             {
                 outputFile << "Nearest neighbor-"<< j << ": " << nn[i].first << endl;
                 outputFile << "distanceLSH: "<< nn[i].second << endl;
-                outputFile << "distanceTrue: "<< bf[i] << endl;
-
+                outputFile << "distanceTrue: "<< bf[i].second << " | " << bf[i].first << endl;
+                correct = correct + (nn[i].first==bf[i].first ? 1 : 0);
                 j++;
             }
             
-            outputFile << "tLSH: " << chrono::duration_cast<chrono::seconds>(endLSH - startLSH).count() << endl;
-            outputFile << "tTrue: " << chrono::duration_cast<chrono::seconds>(endRealDist - startRealDist).count() << endl;
+            outputFile << "tLSH: " << chrono::duration_cast<chrono::microseconds>(endLSH - startLSH).count() << " μs" << endl;
+            outputFile << "tTrue: " << chrono::duration_cast<chrono::microseconds>(endRealDist - startRealDist).count() << " μs" << endl;
             
             outputFile << "R-near neighbors:" << endl;
             for(auto s : rs)
             {
                 outputFile << s << endl;
             }
-            
+            outputFile << endl;
+
             delete[] buff;
             q.clear();
         }
-
+cout << 100*((double)correct / (quer*N)) << "%%" <<endl;
         inputFile.close();
         outputFile.close();
     }

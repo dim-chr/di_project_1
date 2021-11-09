@@ -16,9 +16,9 @@ class VectorData
     list<pair<string, vector<unsigned long>>> vectors;  // Each node of this list contains the 'item_id' of each vector 'p' and its coordinates
     
     public:
-        pair<string, vector<unsigned long>> * insert(string id, const vector<unsigned long> &v );  // Function that is used to insert each vector in the list
-        unsigned int size();  // Function that returns the size of the list
-        vector<double> findRealDistBruteForce(vector<unsigned long> &q, int N);
+        pair<string, vector<unsigned long>> * insert(string id, const vector<unsigned long> &v );
+        unsigned int size();
+        vector<pair<string, double>> findRealDistBruteForce(vector<unsigned long> &q, int N);
 };
 
 extern VectorData *vectorData;

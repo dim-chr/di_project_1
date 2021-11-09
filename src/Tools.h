@@ -12,10 +12,10 @@ using namespace std;
 
 bool sortbyDist(const pair<string, double> &a, const pair<string, double> &b);
 
-void GarbageCollector();
+void DeallocateMemory();
 
-void read_configuration(string filename);
-int extractIntegerFromString(string str);
+//void read_configuration(string filename);
+//int extractIntegerFromString(string str);
 int dimension(string filename);
 int count_file_lines(string filename);
 
