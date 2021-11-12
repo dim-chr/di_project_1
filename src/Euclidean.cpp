@@ -17,7 +17,7 @@ double euclidean_distance(const vector<unsigned long> &p, const vector<unsigned 
 }
 
 // Function that performs the euclidean modulo operation
-unsigned int euclidean_mod(long x, long y)
+unsigned long euclidean_mod(long x, long y)
 {
     if(y != 0)
     {

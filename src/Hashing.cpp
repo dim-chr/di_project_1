@@ -35,7 +35,7 @@ void init_hashing_lsh(int k, int L, int d, unsigned int TableSize)
     // Init
     srand(time(NULL));
     
-    window = 400; //rand() % 5 + 2;
+    window = 900;
     
     LSH_hashTables = new LSHHashTable(L, TableSize);
     vectorData = new VectorData();
@@ -77,6 +77,7 @@ void init_hashing_lsh(int k, int L, int d, unsigned int TableSize)
                 
                 v[i].push_back(distribution(generator));
             }
+            
         }
     }
 
@@ -150,16 +151,17 @@ int h_func(const vector<unsigned long> &p, int i)
 }
 
 // This is the amplified hash function g(p)
-unsigned int g_func(const vector<unsigned long> &p, unsigned int TableSize, int i)
+unsigned int g_func(const vector<unsigned long> &p, int i)
 {
     unsigned long sum=0;
+
     
 	// Calculate the sum r1*h1(p) + r2*h2(p) +...
     for(int j=0; j<g[0].size(); j++)
     {
-        sum = (sum % M) + euclidean_mod(r[j] * h_func(p, g[i][j]), M) ;
+        sum = (sum%M) + euclidean_mod(r[j] * h_func(p, g[i][j]), M);
     }
-    
+
     return euclidean_mod(sum, M);
 }
 
@@ -199,8 +201,8 @@ void LSHHashTable::LSH_insert(int i, vector<unsigned long> &p, pair<string, vect
     // Argument 'i' needs to be smaller than 'L' because the amplified hash function gi(p), 0<= i <=L, will be called
     if(i < this->L)
     {
-        unsigned int hashValue = g_func(p, this->TableSize, i);
-        LSH_hashTables[i][hashValue % TableSize].push_back(make_pair(hashValue, vectorPointer));
+        unsigned int hashValue = g_func(p, i);
+        LSH_hashTables[i][euclidean_mod(hashValue , TableSize)].push_back(make_pair(hashValue, vectorPointer));
     }
 }
 // Function that inserts an item in the hash table if the hypercube is used
@@ -238,10 +240,10 @@ vector<pair<string, double>> LSHHashTable::LSH_findNN(vector<unsigned long> &q, 
     for (int i = 0; i < L; i++) {
         
 		// Get the bucket that query 'q' belongs in
-        unsigned int hashValue = g_func(q, this->TableSize, i);
+        unsigned int hashValue = g_func(q, i);
         
         // For each item in the bucket
-        for(auto candidate : LSH_hashTables[i][hashValue % TableSize])
+        for(auto candidate : LSH_hashTables[i][euclidean_mod(hashValue , TableSize)])
         {
             if (candidate.first == hashValue)
             {
@@ -286,10 +288,10 @@ set<string> LSHHashTable::LSH_rangeSearch(vector<unsigned long> &q, double R)
     for (int i = 0; i < L; i++) {
         
 		// Get the bucket that query 'q' belongs in
-        unsigned int hashValue = g_func(q, this->TableSize, i);
+        unsigned int hashValue = g_func(q, i);
         
         // For each item in the bucket
-        for(auto candidate : LSH_hashTables[i][hashValue % TableSize])
+        for(auto candidate : LSH_hashTables[i][euclidean_mod(hashValue , TableSize)])
         {
             string id = candidate.second->first;  // Get the 'item_id' of the point
             vector<unsigned long> &p = candidate.second->second;  // Get the coordinates of the point
@@ -331,10 +333,10 @@ void LSHHashTable::printHash( )
         out << "HashTable " << i << endl;
         for (int j = 0; j < TableSize; j++)
         {
-            out << "Bucket " << j;
+            out << "|Bucket|: " << j << "|";
             for (int k = 0; k < LSH_hashTables[i][j].size(); k++)
             {
-                out << " | ID: " << LSH_hashTables[i][j][k].first << ", Item_id: " << LSH_hashTables[i][j][k].second->first;
+                out << " (ID: " << LSH_hashTables[i][j][k].first << ", Item_id: " << LSH_hashTables[i][j][k].second->first << ")";
             }
             out << endl;
         }

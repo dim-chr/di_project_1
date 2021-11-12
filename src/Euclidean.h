@@ -7,7 +7,7 @@ using namespace std;
 
 double euclidean_distance( const vector<unsigned long> &p, const vector<unsigned long> &q );
 
-unsigned int euclidean_mod(long a, long b);
+unsigned long euclidean_mod(long a, long b);
 
 #endif
 

@@ -115,8 +115,9 @@ void lsh(string input, string output, int N, double R)
     if (inputFile)
     {
         string line;
-unsigned long correct=0;
-unsigned long quer=0;
+        unsigned long correct=0;
+        unsigned long quer=0;
+        
         // Read every line of the file
         while (getline(inputFile, line))
         {quer++;
@@ -158,6 +159,7 @@ unsigned long quer=0;
                 outputFile << "distanceLSH: "<< nn[i].second << endl;
                 outputFile << "distanceTrue: "<< bf[i].second << " | " << bf[i].first << endl;
                 correct = correct + (nn[i].first==bf[i].first ? 1 : 0);
+                                    
                 j++;
             }
             
@@ -174,7 +176,8 @@ unsigned long quer=0;
             delete[] buff;
             q.clear();
         }
-cout << 100*((double)correct / (quer*N)) << "%%" <<endl;
+        cout << 100*((double)correct / (quer*N)) << "%%" <<endl;
+
         inputFile.close();
         outputFile.close();
     }

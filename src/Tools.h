@@ -21,6 +21,6 @@ int count_file_lines(string filename);
 
 /* h and g functions for LSH and hypercube calculations */
 int h_func(const vector<unsigned long> &p, int i);
-unsigned int g_func(const vector<unsigned long> &p, unsigned int TableSize, int i);
+unsigned int g_func(const vector<unsigned long> &p, int i);
 
 #endif
