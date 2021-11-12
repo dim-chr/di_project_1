@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include "LshHashing.h"
 #include "CubeHashing.h"
 #include "VectorData.h"
@@ -21,7 +22,9 @@ vector<vector<int>> g;
 vector<double> t;
 vector<vector<double>> v;
 
-map<int, bool> cubeMap;
+//map<int, bool> cubeMap;
+// Each h(p) function will have a map and each map will have a key value of h(p) and a mapped value of 0 or 1
+vector< map<int, bool> > cubeMap;
 
 LSHHashTable *LSH_hashTables = NULL;
 CubeHashTable *C_hashTables = NULL;
@@ -29,13 +32,12 @@ VectorData *vectorData;
 
 using namespace std;
 
-// Function that is used to initialize all the necessary variables and data structures in order to use the hash functions and the hash tables
+// Function that is used to initialize all the necessary variables and data structures in order to use the hash functions and the hash tables (LSH)
 void init_hashing_lsh(int k, int L, int d, unsigned int TableSize)
 {
-    // Init
     srand(time(NULL));
     
-    window = 900;
+    window = 400;
     
     LSH_hashTables = new LSHHashTable(L, TableSize);
     vectorData = new VectorData();
@@ -64,50 +66,48 @@ void init_hashing_lsh(int k, int L, int d, unsigned int TableSize)
     }
     
     // Initialize the all the 'v' vectors that will be used by the hash functions 'h(p)'
-	// We need k vectors 'v', one for each hash function
+	// We need k*L vectors 'v', one for each hash function
     {
         default_random_engine generator(time(NULL));
         normal_distribution<double> distribution(0.0, 1.0);
 
-        v.resize(L*k);
+        v.resize(k*L);
 
-        for (int i = 0; i < L*k; i++) {
+        for (int i = 0; i < k*L; i++) {
 
             for (int j = 0; j < d; j++) {
                 
                 v[i].push_back(distribution(generator));
             }
-            
         }
     }
 
     // Initialize the 'g' vectors
-	// There will be L 'g' vectors in total and each one stores the order in which the h(p) functions will be multiplied with the 'ri' numbers
+	// There will be L 'g' vectors in total and each one stores the number 'i' of the hi(p) functions that will be multiplied with the 'ri' numbers
 	// E.g k=4, L=5, g[0]=[0,1,3,2] then g1(p)=((r1*h1(p)+r2*h2(p)+r3*h4(p)+r4*h3(p)) mod M) mod TableSize
     g.resize(L);
     for (int i = 0; i < L; i++) {
         
         for (int j = 0; j < k; j++) {
             
-            g[i].push_back( j + i*k );  // Insert that number in g[i]
+            g[i].push_back(j + i*k);  // Insert that number in g[i]
         }
     }
 }
 
-// Function that is used to initialize all the necessary variables and data structures in order to use the hash functions and the hash tables
+// Function that is used to initialize all the necessary variables and data structures in order to use the hash functions and the hash table (Hypercube)
 void init_hashing_cube(int k, int d, unsigned int TableSize)
 {
-    // Init
     srand(time(0));
     
-    window = 100; //rand() % 5 + 2;
+    window = 400;
     
     C_hashTables = new CubeHashTable(1, TableSize);
     vectorData = new VectorData();
 
     // Initialize all the random 't' numbers that will be used by the hash functions 'h(p)'
     {
-        default_random_engine generator;
+        default_random_engine generator(time(NULL));
         uniform_real_distribution<double> distribution(0, window);
 
         for (int i = 0; i < k; i++) {
@@ -117,9 +117,9 @@ void init_hashing_cube(int k, int d, unsigned int TableSize)
     }
     
     // Initialize the all the 'v' vectors that will be used by the hash functions 'h(p)'
-    // We need k vectors 'v', one for each hash function
+    // We need k(=d') vectors 'v', one for each hash function
     {
-        default_random_engine generator;
+        default_random_engine generator(time(NULL));
         normal_distribution<double> distribution(0.0, 1.0);
 
         v.resize(k);
@@ -133,7 +133,8 @@ void init_hashing_cube(int k, int d, unsigned int TableSize)
         }
     }
 
-
+    // k maps are needed, one for each h(p) function
+    cubeMap.resize(k);
 }
 
 // This is the h(p) hash function
@@ -154,18 +155,17 @@ int h_func(const vector<unsigned long> &p, int i)
 unsigned int g_func(const vector<unsigned long> &p, int i)
 {
     unsigned long sum=0;
-
     
 	// Calculate the sum r1*h1(p) + r2*h2(p) +...
     for(int j=0; j<g[0].size(); j++)
     {
-        sum = (sum%M) + euclidean_mod(r[j] * h_func(p, g[i][j]), M);
+        sum = (sum % M) + euclidean_mod(r[j] * h_func(p, g[i][j]), M) ;
     }
-
+    
     return euclidean_mod(sum, M);
 }
 
-// Constructors of HashTables class
+// Constructors of HashTable classes
 LSHHashTable::LSHHashTable(int L, unsigned int TableSize)
 {
     this->L = L;
@@ -174,7 +174,7 @@ LSHHashTable::LSHHashTable(int L, unsigned int TableSize)
     // L hash tables are needed in total
     LSH_hashTables.resize(L);
 
-    // Each hash table hash 'TableSize' buckets
+    // Each hash table has 'TableSize' buckets
     for (int i = 0; i < L; i++) {
         LSH_hashTables[i].resize(TableSize);
     }
@@ -182,13 +182,13 @@ LSHHashTable::LSHHashTable(int L, unsigned int TableSize)
 
 CubeHashTable::CubeHashTable(int L, unsigned int TableSize)
 {
-    this->L = L;
+    this->L = L;  // For the hypercube L will always be equal to 1 because we only need one hash table
     this->TableSize = TableSize;
 
     // L hash tables are needed in total
     C_hashTables.resize(L);
 
-    // Each hash table hash 'TableSize' buckets
+    // The hash table has 'TableSize' buckets
     for (int i = 0; i < L; i++) {
         C_hashTables[i].resize(TableSize);
     }
@@ -202,28 +202,31 @@ void LSHHashTable::LSH_insert(int i, vector<unsigned long> &p, pair<string, vect
     if(i < this->L)
     {
         unsigned int hashValue = g_func(p, i);
-        LSH_hashTables[i][euclidean_mod(hashValue , TableSize)].push_back(make_pair(hashValue, vectorPointer));
+        LSH_hashTables[i][hashValue % TableSize].push_back(make_pair(hashValue, vectorPointer));
     }
 }
+
 // Function that inserts an item in the hash table if the hypercube is used
-void CubeHashTable::Cube_insert(int d, vector<unsigned long> &p, pair<string, vector<unsigned long>> * vectorPointer)
+void CubeHashTable::Cube_insert(vector<unsigned long> &p, pair<string, vector<unsigned long>> * vectorPointer, int k)
 {
     unsigned int bucket = 0;
     
     // Get the result of every fi(hi(p)) function and store it in the map 'cubeMap'
-	// Every different value of hi(p) corresponds to 0 or 1 in the map
-    for (int i = 0; i < d; i++) {
+    // Every different value of hi(p) corresponds to 0 or 1 in the map
+    for (int i = 0; i < k; i++) {
         
-		// Get hi(p)
+        // Get hi(p)
         int hi = h_func(p, i);
         
         // If there is no key value in the map that is equal to hi(p) then hi(p) is inserted and is given a mapped value of 0 or 1 randomly
-        if(cubeMap.find(hi) == cubeMap.end())
-            cubeMap[hi] = rand() % 2;
+        if(cubeMap[i].find(hi) == cubeMap[i].end())
+            cubeMap[i][hi] = rand() % 2;
+
         
-		// Perform bitwise operations to concatenate all the bits that we will get from this loop
-        bucket |= cubeMap[hi];
-        bucket <<= 1;
+	// Perform bitwise operations to concatenate all the bits that we will get from this loop
+        bucket |= cubeMap[i][hi];
+        if (i < k - 1)
+            bucket <<= 1;
     }
 	
 	// Insert the item in the correct bucket
@@ -243,15 +246,15 @@ vector<pair<string, double>> LSHHashTable::LSH_findNN(vector<unsigned long> &q, 
         unsigned int hashValue = g_func(q, i);
         
         // For each item in the bucket
-        for(auto candidate : LSH_hashTables[i][euclidean_mod(hashValue , TableSize)])
+        for(auto candidate : LSH_hashTables[i][hashValue % TableSize])
         {
             if (candidate.first == hashValue)
             {
                 string id = candidate.second->first;  // Get the 'item_id' of the point
                 vector<unsigned long>& p = candidate.second->second;  // Get the coordinates of the point
 
-                if( b.find(id) == b.end() )
-                    b[id] = euclidean_distance(p, q);  // Make the 'item_id' and the coordiantes a pair and insert it in the vector 'b'
+                if(b.find(id) == b.end())
+                    b[id] = euclidean_distance(p, q);  // Insert the distance in the vector 'b'
             }
         }
     }
@@ -262,23 +265,88 @@ vector<pair<string, double>> LSHHashTable::LSH_findNN(vector<unsigned long> &q, 
         vb.push_back( make_pair(x.first, x.second) );
     }
     
-    // Sort the vector 'b' to find the shortest distances
+    // Sort the vector 'vb' to find the shortest distances
     sort(vb.begin(), vb.end(), sortbyDist);
     
     // Only keep the N shortest distances
-    if(vb.size() > N){
+    if(vb.size() > N)
         vb.resize(N);
-    }
     
     return vb;
 }
 
-vector<pair<string, double>> CubeHashTable::Cube_findNN(vector<unsigned long> &q, int N)
+vector<pair<string, double>> CubeHashTable::Cube_findNN(vector<unsigned long> &q, int N, int k, int maxPoints, int probes)
 {
-    vector<pair<string, double>> b; 
+    vector<pair<string, double>> b;
+    vector<vector<int>> hamming;
+    unsigned int bucket = 0;
+    int points = 0;  // The number of points that will be checked. Must be <= 'maxPoints'
+    int vertices = 0;  // The number of vertices that will be checked. Must be <= 'probes'
+
+    // Get the bucket that query 'q' belongs in
+    for (int i = 0; i < k; i++) {
+
+        // Get hi(p)
+        int hi = h_func(q, i);
+
+        // If there is no key value in the map that is equal to hi(p) then hi(p) is inserted and is given a mapped value of 0 or 1 randomly
+        if (cubeMap[i].find(hi) == cubeMap[i].end())
+            cubeMap[i][hi] = rand() % 2;
+
+        
+        // Perform bitwise operations to concatenate all the bits that we will get from this loop
+        bucket |= cubeMap[i][hi];
+        if (i < k - 1)
+            bucket <<= 1;
+    }
+
+    // Find the hamming distance between 'bucket' and every other bucket of the hash table
+    hamming.resize(k+1); // Max hamming distance is k+1 if we count 0 as well
+    for (unsigned int i = 0; i < this->TableSize; i++)
+    {
+        // Get the hamming distance between the two buckets
+        unsigned int dist = HammingDistance(bucket, i);
+
+        // The hamming[dist] vector contains all the buckets with hamming distance 'dist'
+        hamming[dist].push_back(i);
+    }
+
+    int dist = 0;
+    while (points < maxPoints && vertices < probes)
+    {
+        // Get the bucket that must be checked with hamming distance 'dist'
+        for (auto buck : hamming[dist])
+        {
+            // For each item in the bucket
+            for (auto candidate : C_hashTables[0][buck])
+            {
+                string id = candidate->first;  // Get the 'item_id' of the point
+                vector<unsigned long>& p = candidate->second;  // Get the coordinates of the point
+
+                b.push_back(make_pair(id, euclidean_distance(p, q)));  // Make the 'item_id' and the coordinates of the point a pair and insert it
+
+                points++;
+                if (points >= maxPoints)
+                    break;
+            }
+
+            vertices++;
+            if (vertices >= probes || points >= maxPoints)
+                break;
+        }
+        dist++;
+    }
     
+    // Sort the vector 'b' to find the shortest distances
+    sort(b.begin(), b.end(), sortbyDist);
+
+    // Only keep the N shortest distances
+    if (b.size() > N)
+        b.resize(N);
+
     return b;
 }
+
 // Function that finds all the points within a certain radius 'R' of query 'q'
 set<string> LSHHashTable::LSH_rangeSearch(vector<unsigned long> &q, double R)
 {
@@ -291,7 +359,7 @@ set<string> LSHHashTable::LSH_rangeSearch(vector<unsigned long> &q, double R)
         unsigned int hashValue = g_func(q, i);
         
         // For each item in the bucket
-        for(auto candidate : LSH_hashTables[i][euclidean_mod(hashValue , TableSize)])
+        for(auto candidate : LSH_hashTables[i][hashValue % TableSize])
         {
             string id = candidate.second->first;  // Get the 'item_id' of the point
             vector<unsigned long> &p = candidate.second->second;  // Get the coordinates of the point
@@ -299,18 +367,78 @@ set<string> LSHHashTable::LSH_rangeSearch(vector<unsigned long> &q, double R)
             // If the euclidean distance of 'p' from 'q' is smaller than radius 'R' then 'p' is within that radius
             // Then the 'item_id' of 'p' is inserted in the vector 'b'
             if(euclidean_distance(p, q) < R)
-            {
-                b.insert(id);  //<---------
-            }
+                b.insert(id);
         }
     }
     
     return b;
 }
 
-vector<string> CubeHashTable::Cube_rangeSearch(vector<unsigned long> &q, double R)
+vector<string> CubeHashTable::Cube_rangeSearch(vector<unsigned long> &q, int k, double R, int maxPoints, int probes)
 {
-    vector<string> b; 
+    vector<string> b;
+    vector<vector<int>> hamming;
+    unsigned int bucket = 0;
+    int allBuckets = pow(2, k);
+    int points = 0;  // The number of points that will be checked. Must be <= 'maxPoints'
+    int vertices = 0;  // The number of vertices that will be checked. Must be <= 'probes'
+
+    // Get the bucket that query 'q' belongs in
+    for (int i = 0; i < k; i++) {
+
+        // Get hi(p)
+        int hi = h_func(q, i);
+
+        // If there is no key value in the map that is equal to hi(p) then hi(p) is inserted and is given a mapped value of 0 or 1 randomly
+        if (cubeMap[i].find(hi) == cubeMap[i].end())
+            cubeMap[i][hi] = rand() % 2;
+
+        // Perform bitwise operations to concatenate all the bits that we will get from this loop
+        bucket |= cubeMap[i][hi];
+        if (i < k - 1)
+            bucket <<= 1;
+    }
+
+    // Find the hamming distance between 'bucket' and every other bucket of the hash table
+    hamming.resize(k + 1); // Max hamming distance is k+1 if we count 0 as well
+    for (int i = 0; i < allBuckets; i++)
+    {
+        // Get the hamming distance between the two buckets
+        int dist = HammingDistance(bucket, i);
+
+        // The hamming[dist] vector contains all the buckets with hamming distance 'dist'
+        hamming[dist].push_back(i);
+    }
+
+    int dist = 0;
+    while (points <= maxPoints && vertices <= probes)
+    {
+        // Get the bucket that must be checked with hamming distance 'dist'
+        for (auto bucket : hamming[dist])
+        {
+            // For each item in the bucket
+            for (auto candidate : C_hashTables[0][bucket])
+            {
+                string id = candidate->first;  // Get the 'item_id' of the point
+                vector<unsigned long>& p = candidate->second;  // Get the coordinates of the point
+
+                // If the euclidean distance of 'p' from 'q' is smaller than radius 'R' then 'p' is within that radius
+                // Then the 'item_id' of 'p' is inserted in the vector 'b'
+                if (euclidean_distance(p, q) < R)
+                    b.push_back(id);
+
+                points++;
+                if (points > maxPoints)
+                    break;
+            }
+
+            vertices++;
+            if (vertices > probes || points > maxPoints)
+                break;
+        }
+        dist++;
+    }
+
     return b;
 }
 
@@ -333,10 +461,10 @@ void LSHHashTable::printHash( )
         out << "HashTable " << i << endl;
         for (int j = 0; j < TableSize; j++)
         {
-            out << "|Bucket|: " << j << "|";
+            out << "Bucket " << j;
             for (int k = 0; k < LSH_hashTables[i][j].size(); k++)
             {
-                out << " (ID: " << LSH_hashTables[i][j][k].first << ", Item_id: " << LSH_hashTables[i][j][k].second->first << ")";
+                out << " | ID: " << LSH_hashTables[i][j][k].first << ", Item_id: " << LSH_hashTables[i][j][k].second->first;
             }
             out << endl;
         }

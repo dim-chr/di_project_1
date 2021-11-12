@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include "Methods.h"
 #include "LshHashing.h"
 #include "CubeHashing.h"
@@ -53,8 +54,11 @@ void LSH_pre_process(string filename, int L)
 
     LSH_hashTables->printHash();
 }
+
+
+
 // Function that reads all the points from the input file and saves them in the appropriate data structures
-void Cube_pre_process(string filename, int d)
+void Cube_pre_process(string filename, int k)
 {    
     vector<unsigned long> p;
     
@@ -87,9 +91,8 @@ void Cube_pre_process(string filename, int d)
             // The 'VectorData::insert' function returns the address of the pair (id, p) that was just inserted in the list
             pair<string, vector<unsigned long>> * vectorDataPointer =  vectorData->insert(id, p);
             
-            // Insert the point in every hash table
-        
-            C_hashTables->Cube_insert(d, p, vectorDataPointer);
+            // Insert the point in the hash table
+            C_hashTables->Cube_insert(p, vectorDataPointer, k);
 
 
             delete[] buff;
@@ -98,6 +101,8 @@ void Cube_pre_process(string filename, int d)
 
         inputFile.close();
     }
+    
+    C_hashTables->printHash();
 }
 
 
@@ -117,7 +122,7 @@ void lsh(string input, string output, int N, double R)
         string line;
         unsigned long correct=0;
         unsigned long quer=0;
-        
+        double avg = 0.0;
         // Read every line of the file
         while (getline(inputFile, line))
         {quer++;
@@ -158,8 +163,8 @@ void lsh(string input, string output, int N, double R)
                 outputFile << "Nearest neighbor-"<< j << ": " << nn[i].first << endl;
                 outputFile << "distanceLSH: "<< nn[i].second << endl;
                 outputFile << "distanceTrue: "<< bf[i].second << " | " << bf[i].first << endl;
-                correct = correct + (nn[i].first==bf[i].first ? 1 : 0);
-                                    
+                // correct = correct + (nn[i].first==bf[i].first ? 1 : 0);
+                avg += nn[i].second - bf[i].second;
                 j++;
             }
             
@@ -176,8 +181,89 @@ void lsh(string input, string output, int N, double R)
             delete[] buff;
             q.clear();
         }
-        cout << 100*((double)correct / (quer*N)) << "%%" <<endl;
+        avg = avg/(quer * N);
+        cout << "Average distance: " << avg << endl;
+        inputFile.close();
+        outputFile.close();
+    }
+}
 
+void cube(string input, string output, int N, int k, double R, int maxPoints, int probes)
+{
+    vector<unsigned long> q;
+
+    // Open the input and output files
+    ifstream inputFile(input);
+
+    ofstream outputFile(output);
+
+    if (inputFile)
+    {
+        string line;
+        unsigned long correct = 0;
+        unsigned long quer = 0;
+        double avg = 0.0;
+        // Read every line of the file
+        while (getline(inputFile, line))
+        {
+            quer++;
+            char* buff = new char[line.length() + 1];
+            strcpy(buff, line.c_str());
+            char* token = strtok(buff, " \t");
+
+            char* id = token;
+
+            token = strtok(NULL, " \t");
+
+            // Read all the coordinates of the query and store them in vector 'q'
+            while (token != NULL)
+            {
+                q.push_back(atoi(token));
+                token = strtok(NULL, " \t");
+            }
+
+            // Find the N nearest neighbors using the LSH algorithm, their distance from 'q' and the time it takes to find them
+            auto startCube = chrono::steady_clock::now();
+            vector<pair<string, double>> nn = C_hashTables->Cube_findNN(q, N, k, maxPoints, probes);
+            auto endCube = chrono::steady_clock::now();
+
+            // Find the real distances of the N nearest neighbors from 'q' and the time it takes to find them
+            auto startRealDist = chrono::steady_clock::now();
+            vector<pair<string, double>> bf = vectorData->findRealDistBruteForce(q, N);
+            auto endRealDist = chrono::steady_clock::now();
+
+            // Find all the points within radius 'R' of 'q'
+            vector<string> rs = C_hashTables->Cube_rangeSearch(q, k, R, maxPoints, probes);
+
+            outputFile << "Query: " << id << endl;
+
+            // Write all the results in the output file
+            unsigned int j = 1;
+            for (unsigned int i = 0; i < nn.size(); i++)
+            {
+                outputFile << "Nearest neighbor-" << j << ": " << nn[i].first << endl;
+                outputFile << "distanceHypercube: " << nn[i].second << endl;
+                outputFile << "distanceTrue: " << bf[i].second << " | " << bf[i].first << endl;
+                //correct = correct + (nn[i].first == bf[i].first ? 1 : 0);
+                avg += nn[i].second - bf[i].second;
+                j++;
+            }
+
+            outputFile << "tCube: " << chrono::duration_cast<chrono::microseconds>(endCube - startCube).count() << " μs" << endl;
+            outputFile << "tTrue: " << chrono::duration_cast<chrono::microseconds>(endRealDist - startRealDist).count() << " μs" << endl;
+
+            outputFile << "R-near neighbors:" << endl;
+            for (auto s : rs)
+            {
+                outputFile << s << endl;
+            }
+            outputFile << endl;
+
+            delete[] buff;
+            q.clear();
+        }
+        avg = avg/(quer * N);
+        cout << "Average distance: " << avg << endl;
         inputFile.close();
         outputFile.close();
     }
