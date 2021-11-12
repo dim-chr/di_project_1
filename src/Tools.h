@@ -12,6 +12,8 @@ using namespace std;
 
 bool sortbyDist(const pair<string, double> &a, const pair<string, double> &b);
 
+unsigned int HammingDistance(unsigned int a, unsigned int b);
+
 void DeallocateMemory();
 
 //void read_configuration(string filename);
