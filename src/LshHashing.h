@@ -20,7 +20,7 @@ class LSHHashTable
 		// Every bucket of each hash table contains an ID (ID(p) = r1*h1(p)+r2*h2(p)+... mod M) for the item that will be inserted
 		// Each bucket also contains a pointer to a pair (item_id, vector 'p') from the list of vectors in class 'VectorData'
 
-        vector<vector<vector< pair< unsigned int, pair<string, vector<unsigned long>> * >>>> LSH_hashTables;
+        vector<vector<vector< pair< unsigned int, pair<string, vector<double>> * >>>> LSH_hashTables;
 
     
     public:
@@ -28,9 +28,9 @@ class LSHHashTable
         LSHHashTable(int L, unsigned int TableSize);  // Constructor
         
         
-        void LSH_insert(int l, vector<unsigned long> &p, pair<string, vector<unsigned long>> * vectorPointer);  // Function that inserts an item in one of the hash tables
-        vector<pair<string, double>> LSH_findNN(vector<unsigned long> &q, int N);
-        set<string> LSH_rangeSearch(vector<unsigned long> &q, double R);
+        void LSH_insert(int l, vector<double> &p, pair<string, vector<double>> * vectorPointer);  // Function that inserts an item in one of the hash tables
+        vector<pair<string, double>> LSH_findNN(vector<double> &q, int N);
+        set<string> LSH_rangeSearch(vector<double> &q, double R);
         void printHash();
 };
 

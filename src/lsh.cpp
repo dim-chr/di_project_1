@@ -15,7 +15,7 @@ int main(int argc, char** argv)
     string out_file = "";
     int k = 4;
     int L = 5;
-    int N = 1;
+    int N = 5;
     int R = 10000;
 
     if (argc > 15)

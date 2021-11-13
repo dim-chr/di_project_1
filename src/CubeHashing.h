@@ -22,16 +22,16 @@ class CubeHashTable
 		// Each bucket also contains a pointer to a pair (item_id, vector 'p') from the list of vectors in class 'VectorData'
         
         
-        vector<vector<vector< pair<string, vector<unsigned long>> * >>> C_hashTables; 
+        vector<vector<vector< pair<string, vector<double>> * >>> C_hashTables; 
 
     public:
     
         CubeHashTable(int L, unsigned int TableSize);  // Constructor
         
         
-        void Cube_insert(vector<unsigned long> &p, pair<string, vector<unsigned long>> * vectorPointer, int k);  // Function that inserts an item in one of the hash tables
-        vector<pair<string, double>> Cube_findNN(vector<unsigned long> &q, int N, int k, int maxPoints, int probes);
-        vector<string> Cube_rangeSearch(vector<unsigned long> &q, int k, double R, int maxPoints, int probes);
+        void Cube_insert(vector<double> &p, pair<string, vector<double>> * vectorPointer, int k);  // Function that inserts an item in one of the hash tables
+        vector<pair<string, double>> Cube_findNN(vector<double> &q, int N, int k, int maxPoints, int probes);
+        vector<string> Cube_rangeSearch(vector<double> &q, int k, double R, int maxPoints, int probes);
 
         
         void printHash( )

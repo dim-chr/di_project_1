@@ -8,12 +8,12 @@
 
 
 // Function that is used to insert each vector in the list
-pair<string, vector<unsigned long>> * VectorData::insert(string id, const vector<unsigned long> &v)
+pair<string, vector<double>> * VectorData::insert(string id, const vector<double> &v)
 {
     vectors.push_back(make_pair(id, v));  // Insert the 'item_id' of vector 'p' and its coordinates
     
     // Get the item that was just inserted in the list
-    pair< string, vector<unsigned long>>& p = vectors.back();
+    pair< string, vector<double>>& p = vectors.back();
     
     // Return the item's address
     return &p;
@@ -25,15 +25,29 @@ unsigned int VectorData::size()
     return vectors.size();
 }
 
+pair<string, vector<double>> & VectorData::get(unsigned int i)
+{
+    auto f = vectors.begin();
+
+    std::advance(f, i);
+    
+    return *f;
+}
+
+list<pair<string, vector<double>>> & VectorData::getBegin()
+{
+    return vectors;
+}
+
 // Function that finds the real distances between query point 'q' and its N nearest neighbors using exhaustive search
-vector<pair<string, double>> VectorData::findRealDistBruteForce( vector<unsigned long> &q, int N )
+vector<pair<string, double>> VectorData::findRealDistBruteForce( vector<double> &q, int N )
 {
     vector<pair<string, double>> b;
     
     // For every point 'p' calculate its distance from 'q'
     for(auto candidate : vectors)
     {
-        vector<unsigned long> &p = candidate.second;
+        vector<double> &p = candidate.second;
         b.push_back( make_pair( candidate.first, euclidean_distance(p, q)));
     }
     

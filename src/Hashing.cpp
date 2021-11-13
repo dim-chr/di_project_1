@@ -37,7 +37,7 @@ void init_hashing_lsh(int k, int L, int d, unsigned int TableSize)
 {
     srand(time(NULL));
     
-    window = 400;
+    window = 700;
     
     LSH_hashTables = new LSHHashTable(L, TableSize);
     vectorData = new VectorData();
@@ -138,7 +138,7 @@ void init_hashing_cube(int k, int d, unsigned int TableSize)
 }
 
 // This is the h(p) hash function
-int h_func(const vector<unsigned long> &p, int i)
+int h_func(const vector<double> &p, int i)
 {
     double dot_product=0.0;
     
@@ -152,7 +152,7 @@ int h_func(const vector<unsigned long> &p, int i)
 }
 
 // This is the amplified hash function g(p)
-unsigned int g_func(const vector<unsigned long> &p, int i)
+unsigned int g_func(const vector<double> &p, int i)
 {
     unsigned long sum=0;
     
@@ -196,7 +196,7 @@ CubeHashTable::CubeHashTable(int L, unsigned int TableSize)
 
 
 // Function that inserts an item in one of the hash tables
-void LSHHashTable::LSH_insert(int i, vector<unsigned long> &p, pair<string, vector<unsigned long>> * vectorPointer)
+void LSHHashTable::LSH_insert(int i, vector<double> &p, pair<string, vector<double>> * vectorPointer)
 {
     // Argument 'i' needs to be smaller than 'L' because the amplified hash function gi(p), 0<= i <=L, will be called
     if(i < this->L)
@@ -207,7 +207,7 @@ void LSHHashTable::LSH_insert(int i, vector<unsigned long> &p, pair<string, vect
 }
 
 // Function that inserts an item in the hash table if the hypercube is used
-void CubeHashTable::Cube_insert(vector<unsigned long> &p, pair<string, vector<unsigned long>> * vectorPointer, int k)
+void CubeHashTable::Cube_insert(vector<double> &p, pair<string, vector<double>> * vectorPointer, int k)
 {
     unsigned int bucket = 0;
     
@@ -235,7 +235,7 @@ void CubeHashTable::Cube_insert(vector<unsigned long> &p, pair<string, vector<un
 
 
 // Function that finds the N approximate nearest neighbors for LSH
-vector<pair<string, double>> LSHHashTable::LSH_findNN(vector<unsigned long> &q, int N)
+vector<pair<string, double>> LSHHashTable::LSH_findNN(vector<double> &q, int N)
 {
     map<string, double> b;
     
@@ -251,7 +251,7 @@ vector<pair<string, double>> LSHHashTable::LSH_findNN(vector<unsigned long> &q, 
             if (candidate.first == hashValue)
             {
                 string id = candidate.second->first;  // Get the 'item_id' of the point
-                vector<unsigned long>& p = candidate.second->second;  // Get the coordinates of the point
+                vector<double>& p = candidate.second->second;  // Get the coordinates of the point
 
                 if(b.find(id) == b.end())
                     b[id] = euclidean_distance(p, q);  // Insert the distance in the vector 'b'
@@ -275,7 +275,7 @@ vector<pair<string, double>> LSHHashTable::LSH_findNN(vector<unsigned long> &q, 
     return vb;
 }
 
-vector<pair<string, double>> CubeHashTable::Cube_findNN(vector<unsigned long> &q, int N, int k, int maxPoints, int probes)
+vector<pair<string, double>> CubeHashTable::Cube_findNN(vector<double> &q, int N, int k, int maxPoints, int probes)
 {
     vector<pair<string, double>> b;
     vector<vector<int>> hamming;
@@ -310,6 +310,7 @@ vector<pair<string, double>> CubeHashTable::Cube_findNN(vector<unsigned long> &q
         // The hamming[dist] vector contains all the buckets with hamming distance 'dist'
         hamming[dist].push_back(i);
     }
+    
 
     int dist = 0;
     while (points < maxPoints && vertices < probes)
@@ -321,7 +322,7 @@ vector<pair<string, double>> CubeHashTable::Cube_findNN(vector<unsigned long> &q
             for (auto candidate : C_hashTables[0][buck])
             {
                 string id = candidate->first;  // Get the 'item_id' of the point
-                vector<unsigned long>& p = candidate->second;  // Get the coordinates of the point
+                vector<double>& p = candidate->second;  // Get the coordinates of the point
 
                 b.push_back(make_pair(id, euclidean_distance(p, q)));  // Make the 'item_id' and the coordinates of the point a pair and insert it
 
@@ -348,7 +349,7 @@ vector<pair<string, double>> CubeHashTable::Cube_findNN(vector<unsigned long> &q
 }
 
 // Function that finds all the points within a certain radius 'R' of query 'q'
-set<string> LSHHashTable::LSH_rangeSearch(vector<unsigned long> &q, double R)
+set<string> LSHHashTable::LSH_rangeSearch(vector<double> &q, double R)
 {
     set<string> b;
     
@@ -362,7 +363,7 @@ set<string> LSHHashTable::LSH_rangeSearch(vector<unsigned long> &q, double R)
         for(auto candidate : LSH_hashTables[i][hashValue % TableSize])
         {
             string id = candidate.second->first;  // Get the 'item_id' of the point
-            vector<unsigned long> &p = candidate.second->second;  // Get the coordinates of the point
+            vector<double> &p = candidate.second->second;  // Get the coordinates of the point
             
             // If the euclidean distance of 'p' from 'q' is smaller than radius 'R' then 'p' is within that radius
             // Then the 'item_id' of 'p' is inserted in the vector 'b'
@@ -374,7 +375,7 @@ set<string> LSHHashTable::LSH_rangeSearch(vector<unsigned long> &q, double R)
     return b;
 }
 
-vector<string> CubeHashTable::Cube_rangeSearch(vector<unsigned long> &q, int k, double R, int maxPoints, int probes)
+vector<string> CubeHashTable::Cube_rangeSearch(vector<double> &q, int k, double R, int maxPoints, int probes)
 {
     vector<string> b;
     vector<vector<int>> hamming;
@@ -420,7 +421,7 @@ vector<string> CubeHashTable::Cube_rangeSearch(vector<unsigned long> &q, int k, 
             for (auto candidate : C_hashTables[0][bucket])
             {
                 string id = candidate->first;  // Get the 'item_id' of the point
-                vector<unsigned long>& p = candidate->second;  // Get the coordinates of the point
+                vector<double>& p = candidate->second;  // Get the coordinates of the point
 
                 // If the euclidean distance of 'p' from 'q' is smaller than radius 'R' then 'p' is within that radius
                 // Then the 'item_id' of 'p' is inserted in the vector 'b'
@@ -444,7 +445,7 @@ vector<string> CubeHashTable::Cube_rangeSearch(vector<unsigned long> &q, int k, 
 
 void DeallocateMemory()
 {
-	delete vectorData;
+    delete vectorData;
     
     if (LSH_hashTables != NULL)
 	    delete LSH_hashTables;

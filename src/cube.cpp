@@ -15,10 +15,10 @@ int main(int argc, char** argv)
     string input_file = "";
     string query_file = "";
     string out_file = "";
-    int k = 14;
-    int M = 30;
-    int probes = 20;
-    int N = 1;
+    int k = 10;
+    int M = 50;
+    int probes = 15;
+    int N = 3;
     int R = 10000;
 
     if (argc > 17)

@@ -4,11 +4,12 @@
 #include "CubeHashing.h"
 
 #include "VectorData.h"
+#include "Kmeans.h"
 
 // Function that reads all the points from the input file and saves them in the appropriate data structures
 void LSH_pre_process(string filename, int L)
 {
-    vector<unsigned long> p;
+    vector<double> p;
     
     // Open the input file
     ifstream inputFile(filename);
@@ -37,7 +38,7 @@ void LSH_pre_process(string filename, int L)
 
             // Insert the 'item_id' of the point and its coordinates in the 'vectorData' list
             // The 'VectorData::insert' function returns the address of the pair (id, p) that was just inserted in the list
-            pair<string, vector<unsigned long>> * vectorDataPointer =  vectorData->insert(id, p);
+            pair<string, vector<double>> * vectorDataPointer =  vectorData->insert(id, p);
             
             // Insert the point in every hash table
             for (int i = 0; i < L; i++) {
@@ -60,7 +61,7 @@ void LSH_pre_process(string filename, int L)
 // Function that reads all the points from the input file and saves them in the appropriate data structures
 void Cube_pre_process(string filename, int k)
 {    
-    vector<unsigned long> p;
+    vector<double> p;
     
     // Open the input file
     ifstream inputFile(filename);
@@ -89,7 +90,7 @@ void Cube_pre_process(string filename, int k)
 
             // Insert the 'item_id' of the point and its coordinates in the 'vectorData' list
             // The 'VectorData::insert' function returns the address of the pair (id, p) that was just inserted in the list
-            pair<string, vector<unsigned long>> * vectorDataPointer =  vectorData->insert(id, p);
+            pair<string, vector<double>> * vectorDataPointer =  vectorData->insert(id, p);
             
             // Insert the point in the hash table
             C_hashTables->Cube_insert(p, vectorDataPointer, k);
@@ -110,7 +111,7 @@ void Cube_pre_process(string filename, int k)
 // It also generates the output file with the results
 void lsh(string input, string output, int N, double R)
 {
-    vector<unsigned long> q;
+    vector<double> q;
     
     // Open the input and output files
     ifstream inputFile(input);
@@ -122,7 +123,7 @@ void lsh(string input, string output, int N, double R)
         string line;
         unsigned long correct=0;
         unsigned long quer=0;
-        double avg = 0.0;
+
         // Read every line of the file
         while (getline(inputFile, line))
         {quer++;
@@ -163,8 +164,7 @@ void lsh(string input, string output, int N, double R)
                 outputFile << "Nearest neighbor-"<< j << ": " << nn[i].first << endl;
                 outputFile << "distanceLSH: "<< nn[i].second << endl;
                 outputFile << "distanceTrue: "<< bf[i].second << " | " << bf[i].first << endl;
-                // correct = correct + (nn[i].first==bf[i].first ? 1 : 0);
-                avg += nn[i].second - bf[i].second;
+                correct = correct + (nn[i].first==bf[i].first ? 1 : 0);
                 j++;
             }
             
@@ -181,8 +181,7 @@ void lsh(string input, string output, int N, double R)
             delete[] buff;
             q.clear();
         }
-        avg = avg/(quer * N);
-        cout << "Average distance: " << avg << endl;
+        cout << 100*((double)correct / (quer*N)) << "%%" <<endl;
         inputFile.close();
         outputFile.close();
     }
@@ -190,7 +189,7 @@ void lsh(string input, string output, int N, double R)
 
 void cube(string input, string output, int N, int k, double R, int maxPoints, int probes)
 {
-    vector<unsigned long> q;
+    vector<double> q;
 
     // Open the input and output files
     ifstream inputFile(input);
@@ -202,7 +201,6 @@ void cube(string input, string output, int N, int k, double R, int maxPoints, in
         string line;
         unsigned long correct = 0;
         unsigned long quer = 0;
-        double avg = 0.0;
         // Read every line of the file
         while (getline(inputFile, line))
         {
@@ -244,8 +242,7 @@ void cube(string input, string output, int N, int k, double R, int maxPoints, in
                 outputFile << "Nearest neighbor-" << j << ": " << nn[i].first << endl;
                 outputFile << "distanceHypercube: " << nn[i].second << endl;
                 outputFile << "distanceTrue: " << bf[i].second << " | " << bf[i].first << endl;
-                //correct = correct + (nn[i].first == bf[i].first ? 1 : 0);
-                avg += nn[i].second - bf[i].second;
+                correct = correct + (nn[i].first == bf[i].first ? 1 : 0);
                 j++;
             }
 
@@ -262,9 +259,49 @@ void cube(string input, string output, int N, int k, double R, int maxPoints, in
             delete[] buff;
             q.clear();
         }
-        avg = avg/(quer * N);
-        cout << "Average distance: " << avg << endl;
+        cout << 100 * ((double)correct / (quer * N)) << "%" << endl;
         inputFile.close();
         outputFile.close();
+    }
+}
+
+void Cluster_pre_process(string filename)
+{    
+    vector<double> p;
+    
+    // Open the input file
+    ifstream inputFile(filename);
+
+    if (inputFile)
+    {
+        string line;
+
+        // Read every line of the file
+        while (getline(inputFile, line))
+        {
+            char* buff = new char[line.length()+1];
+            strcpy(buff, line.c_str());
+            char* token = strtok(buff," \t");
+
+            char *id = token;  // This is the 'item_id' of the point
+
+            token = strtok(NULL," \t");
+
+            // Read all the coordinates of the point and store them in vector 'p'
+            while (token != NULL)
+            {
+                p.push_back(atoi(token));
+                token = strtok (NULL, " \t");
+            }
+
+            // Insert the 'item_id' of the point and its coordinates in the 'vectorData' list
+            // The 'VectorData::insert' function returns the address of the pair (id, p) that was just inserted in the list
+            pair<string, vector<double>> * vectorDataPointer =  vectorData->insert(id, p);
+            
+            delete[] buff;
+            p.clear();
+        }
+
+        inputFile.close();
     }
 }
