@@ -7,10 +7,10 @@
 #include <algorithm>
 
 
-// Function that is used to insert each vector in the list
+// Function that is used to insert each point in the list
 pair<string, vector<double>> * VectorData::insert(string id, const vector<double> &v)
 {
-    vectors.push_back(make_pair(id, v));  // Insert the 'item_id' of vector 'p' and its coordinates
+    vectors.push_back(make_pair(id, v));  // Insert the 'item_id' of point 'p' and its coordinates
     
     // Get the item that was just inserted in the list
     pair< string, vector<double>>& p = vectors.back();
@@ -25,6 +25,7 @@ unsigned int VectorData::size()
     return vectors.size();
 }
 
+// Function that returns a reference to a specific iten in the list
 pair<string, vector<double>> & VectorData::get(unsigned int i)
 {
     auto f = vectors.begin();
@@ -34,6 +35,7 @@ pair<string, vector<double>> & VectorData::get(unsigned int i)
     return *f;
 }
 
+// Function that returns a reference to the start of the list
 list<pair<string, vector<double>>> & VectorData::getBegin()
 {
     return vectors;
@@ -48,7 +50,7 @@ vector<pair<string, double>> VectorData::findRealDistBruteForce( vector<double> 
     for(auto candidate : vectors)
     {
         vector<double> &p = candidate.second;
-        b.push_back( make_pair( candidate.first, euclidean_distance(p, q)));
+        b.push_back( make_pair(candidate.first, euclidean_distance(p, q)) );
     }
     
 	// Sort the vector 'b' to find the shortest distances

@@ -1,7 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
-#include "LshHashing.h"
-#include "CubeHashing.h"
-#include "VectorData.h"
+#include "../LSH/LshHashing.h"
+#include "../HyperCube/CubeHashing.h"
+#include "../Common/VectorData.h"
 #include "Euclidean.h"
 #include "Tools.h"
 
@@ -14,15 +14,14 @@
 #include <map>
 #include <set>
 
-#define M 4294967291        // 2^32 - 5
+#define M 4294967291   // M = 2^32 - 5
 
-int window;     // 'w' variable that is used by the h(p) hash functions
+int window;   // 'w' variable that is used by the h(p) hash functions
 vector<int> r;
 vector<vector<int>> g;
 vector<double> t;
 vector<vector<double>> v;
 
-//map<int, bool> cubeMap;
 // Each h(p) function will have a map and each map will have a key value of h(p) and a mapped value of 0 or 1
 vector< map<int, bool> > cubeMap;
 
@@ -37,11 +36,10 @@ void init_hashing_lsh(int k, int L, int d, unsigned int TableSize)
 {
     srand(time(NULL));
     
-    window = 700;
+    window = 400;
     
     LSH_hashTables = new LSHHashTable(L, TableSize);
     vectorData = new VectorData();
-    
 
     // Initialize the 'r' vector that will be used by every amplified hash function 'g(p)'
     {
@@ -98,7 +96,7 @@ void init_hashing_lsh(int k, int L, int d, unsigned int TableSize)
 // Function that is used to initialize all the necessary variables and data structures in order to use the hash functions and the hash table (Hypercube)
 void init_hashing_cube(int k, int d, unsigned int TableSize)
 {
-    srand(time(0));
+    srand(time(NULL));
     
     window = 400;
     
@@ -165,7 +163,7 @@ unsigned int g_func(const vector<double> &p, int i)
     return euclidean_mod(sum, M);
 }
 
-// Constructors of HashTable classes
+// Constructor of LSHHashTable class
 LSHHashTable::LSHHashTable(int L, unsigned int TableSize)
 {
     this->L = L;
@@ -180,6 +178,7 @@ LSHHashTable::LSHHashTable(int L, unsigned int TableSize)
     }
 }
 
+// Constructor of CubeHashTable class
 CubeHashTable::CubeHashTable(int L, unsigned int TableSize)
 {
     this->L = L;  // For the hypercube L will always be equal to 1 because we only need one hash table
@@ -248,21 +247,24 @@ vector<pair<string, double>> LSHHashTable::LSH_findNN(vector<double> &q, int N)
         // For each item in the bucket
         for(auto candidate : LSH_hashTables[i][hashValue % TableSize])
         {
+            // If ID(p) = ID(q)
             if (candidate.first == hashValue)
             {
                 string id = candidate.second->first;  // Get the 'item_id' of the point
                 vector<double>& p = candidate.second->second;  // Get the coordinates of the point
 
+                // If the 'item_id' of that point is not already in the map then insert the distance
                 if(b.find(id) == b.end())
-                    b[id] = euclidean_distance(p, q);  // Insert the distance in the vector 'b'
+                    b[id] = euclidean_distance(p, q);
             }
         }
     }
     
+    // Store all the values of the map 'b' in vector 'vb'
     vector<pair<string, double>> vb;
     for(auto x : b)
     {
-        vb.push_back( make_pair(x.first, x.second) );
+        vb.push_back(make_pair(x.first, x.second));
     }
     
     // Sort the vector 'vb' to find the shortest distances
@@ -275,6 +277,7 @@ vector<pair<string, double>> LSHHashTable::LSH_findNN(vector<double> &q, int N)
     return vb;
 }
 
+// Function that finds the N approximate nearest neighbors for Hypercube
 vector<pair<string, double>> CubeHashTable::Cube_findNN(vector<double> &q, int N, int k, int maxPoints, int probes)
 {
     vector<pair<string, double>> b;
@@ -313,7 +316,7 @@ vector<pair<string, double>> CubeHashTable::Cube_findNN(vector<double> &q, int N
     
 
     int dist = 0;
-    while (points < maxPoints && vertices < probes)
+    while (points < maxPoints && vertices < probes && dist <= k)
     {
         // Get the bucket that must be checked with hamming distance 'dist'
         for (auto buck : hamming[dist])
@@ -348,7 +351,7 @@ vector<pair<string, double>> CubeHashTable::Cube_findNN(vector<double> &q, int N
     return b;
 }
 
-// Function that finds all the points within a certain radius 'R' of query 'q'
+// Function that finds all the points within a certain radius 'R' of query 'q' for LSH
 set<string> LSHHashTable::LSH_rangeSearch(vector<double> &q, double R)
 {
     set<string> b;
@@ -375,6 +378,7 @@ set<string> LSHHashTable::LSH_rangeSearch(vector<double> &q, double R)
     return b;
 }
 
+// Function that finds all the points within a certain radius 'R' of query 'q' for Hypercube
 vector<string> CubeHashTable::Cube_rangeSearch(vector<double> &q, int k, double R, int maxPoints, int probes)
 {
     vector<string> b;
@@ -412,7 +416,7 @@ vector<string> CubeHashTable::Cube_rangeSearch(vector<double> &q, int k, double 
     }
 
     int dist = 0;
-    while (points <= maxPoints && vertices <= probes)
+    while (points <= maxPoints && vertices <= probes && dist <= k)
     {
         // Get the bucket that must be checked with hamming distance 'dist'
         for (auto bucket : hamming[dist])
@@ -443,6 +447,7 @@ vector<string> CubeHashTable::Cube_rangeSearch(vector<double> &q, int k, double 
     return b;
 }
 
+// Function that frees the memory that was allocated for the data structures
 void DeallocateMemory()
 {
     delete vectorData;
@@ -453,24 +458,24 @@ void DeallocateMemory()
         delete C_hashTables;
 }
 
-void LSHHashTable::printHash( )
-{
-    ofstream out("ids.txt");
+//For Debug only
+// void LSHHashTable::printHash( )
+// {
+//     ofstream out("ids.txt");
     
-    for (int i = 0; i < L; i++)
-    {
-        out << "HashTable " << i << endl;
-        for (int j = 0; j < TableSize; j++)
-        {
-            out << "Bucket " << j;
-            for (int k = 0; k < LSH_hashTables[i][j].size(); k++)
-            {
-                out << " | ID: " << LSH_hashTables[i][j][k].first << ", Item_id: " << LSH_hashTables[i][j][k].second->first;
-            }
-            out << endl;
-        }
-        out << "\n\n";
-    }
-    
-    out.close();
-}
+//     for (int i = 0; i < L; i++)
+//     {
+//         out << "HashTable " << i << endl;
+//         for (int j = 0; j < TableSize; j++)
+//         {
+//             out << "Bucket " << j;
+//             for (int k = 0; k < LSH_hashTables[i][j].size(); k++)
+//             {
+//                 out << " | ID: " << LSH_hashTables[i][j][k].first << ", Item_id: " << LSH_hashTables[i][j][k].second->first;
+//             }
+//             out << endl;
+//         }
+//         out << "\n\n";
+//     }
+//     out.close();
+// }

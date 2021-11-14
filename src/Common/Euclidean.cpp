@@ -1,5 +1,6 @@
-#include <cmath>
 #include "Euclidean.h"
+
+#include <cmath>
 
 using namespace std;
 
@@ -8,7 +9,7 @@ double euclidean_distance(const vector<double> &p, const vector<double> &q)
 {
     double sum = 0.0;
     
-    for(int i=0; i<p.size(); i++)
+    for(int i = 0; i < p.size(); i++)
     {
         sum = sum + pow(abs((long) p[i] - (long)q[i]), 2.0);
     }
