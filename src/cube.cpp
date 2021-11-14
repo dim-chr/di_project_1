@@ -1,7 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
-#include "Methods.h"
-#include "Tools.h"
-#include "CubeHashing.h"
+#include "./Common/Methods.h"
+#include "./Common/Tools.h"
+#include "./HyperCube/CubeHashing.h"
 
 #include <cstdlib>
 #include <iostream>
@@ -15,10 +15,10 @@ int main(int argc, char** argv)
     string input_file = "";
     string query_file = "";
     string out_file = "";
-    int k = 10;
-    int M = 50;
-    int probes = 15;
-    int N = 3;
+    int k = 14;
+    int M = 10;
+    int probes = 2;
+    int N = 1;
     int R = 10000;
 
     if (argc > 17)
@@ -66,8 +66,6 @@ int main(int argc, char** argv)
     cout << "inputFile: " << input_file << endl;
     cout << "outputFile: " << out_file << endl;
     cout << "queryFile: " << query_file << endl;
-    cout << "dimension: " << dimension(input_file) << endl;
-    cout << "File lines: " << count_file_lines(input_file) << endl;
 
     init_hashing_cube(k, dimension(input_file), pow(2, k));
 

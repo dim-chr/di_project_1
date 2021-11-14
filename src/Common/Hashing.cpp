@@ -1,7 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
-#include "LshHashing.h"
-#include "CubeHashing.h"
-#include "VectorData.h"
+#include "../LSH/LshHashing.h"
+#include "../HyperCube/CubeHashing.h"
+#include "../Common/VectorData.h"
 #include "Euclidean.h"
 #include "Tools.h"
 
@@ -36,7 +36,7 @@ void init_hashing_lsh(int k, int L, int d, unsigned int TableSize)
 {
     srand(time(NULL));
     
-    window = 700;
+    window = 400;
     
     LSH_hashTables = new LSHHashTable(L, TableSize);
     vectorData = new VectorData();
@@ -458,24 +458,24 @@ void DeallocateMemory()
         delete C_hashTables;
 }
 
-void LSHHashTable::printHash( )
-{
-    ofstream out("ids.txt");
+//For Debug only
+// void LSHHashTable::printHash( )
+// {
+//     ofstream out("ids.txt");
     
-    for (int i = 0; i < L; i++)
-    {
-        out << "HashTable " << i << endl;
-        for (int j = 0; j < TableSize; j++)
-        {
-            out << "Bucket " << j;
-            for (int k = 0; k < LSH_hashTables[i][j].size(); k++)
-            {
-                out << " | ID: " << LSH_hashTables[i][j][k].first << ", Item_id: " << LSH_hashTables[i][j][k].second->first;
-            }
-            out << endl;
-        }
-        out << "\n\n";
-    }
-    
-    out.close();
-}
+//     for (int i = 0; i < L; i++)
+//     {
+//         out << "HashTable " << i << endl;
+//         for (int j = 0; j < TableSize; j++)
+//         {
+//             out << "Bucket " << j;
+//             for (int k = 0; k < LSH_hashTables[i][j].size(); k++)
+//             {
+//                 out << " | ID: " << LSH_hashTables[i][j][k].first << ", Item_id: " << LSH_hashTables[i][j][k].second->first;
+//             }
+//             out << endl;
+//         }
+//         out << "\n\n";
+//     }
+//     out.close();
+// }

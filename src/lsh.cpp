@@ -1,6 +1,6 @@
-#include "Methods.h"
-#include "Tools.h"
-#include "LshHashing.h"
+#include "./Common/Methods.h"
+#include "./Common/Tools.h"
+#include "./LSH/LshHashing.h"
 
 #include <cstdlib>
 #include <iostream>

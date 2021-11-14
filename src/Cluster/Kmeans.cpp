@@ -1,9 +1,10 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "Kmeans.h"
-#include "VectorData.h"
-#include "Euclidean.h"
+#include "../Common/VectorData.h"
+#include "../Common/Euclidean.h"
 
 #include <iostream>
+#include <string.h>
 
 using namespace std;
 
@@ -104,8 +105,6 @@ void Clusters::updateClusters()
                 newC = c;
             }
         }
-        
-        // Paei sto kainourgio cluster
         clusters[newC].push_back(&(v));
     }
 }
@@ -162,7 +161,7 @@ void Clusters::chooseNewCentroid()
 void Clusters::Lloyd()
 {
     bool b;
-    
+
     do {
 
         updateClusters();
@@ -174,16 +173,14 @@ void Clusters::Lloyd()
 bool Clusters::updateCentroids()
 {
     vector<double> newDist;
-    
+
     for (int i = 0; i < centroids.size(); i++) {
-        cout << "1" << endl;
         vector<double> m = mean(i);
         double dist = euclidean_distance(centroids[i], m);
         centroids[i] = m;
         newDist.push_back(dist);
     }
     
-    // Check an tha mporousa na stamatisw ta update centroids
     for (auto d : newDist) {
 
         if(d > STOP)
@@ -194,9 +191,9 @@ bool Clusters::updateCentroids()
 }
 
 vector<double> Clusters::mean(int c)
-{
+{    
     vector<double> m = centroids[c];
-    
+
     for (int i = 0; i < m.size(); i++) {
         
         m[i] = 0.0;
@@ -211,7 +208,6 @@ vector<double> Clusters::mean(int c)
         else
             m[i] = m[i] / clusters[c].size();
     }
-
     return m;
 }
 
@@ -242,7 +238,6 @@ int Clusters::getSecondClosestCentroid(vector<double>& p)
 double Clusters::avgDistanceBetweenPoints(vector<double>& p, int c)
 {
     double dist = 0;
-
     for (int i = 0; i < clusters[c].size(); i++)
     {
         dist += euclidean_distance(p, clusters[c][i]->second);
@@ -257,17 +252,15 @@ void Clusters::Silhouette(string filename, bool complete)
     unsigned int allPoints = 0;
     double temp = 0.0, sil = 0.0, result = 0.0;
     vector<double> si;
-
+    
     for (int i = 0; i < this->k; i++)
     {
         sil = 0.0;
         for (int j = 0; j < clusters[i].size(); j++)
         {
             ai = avgDistanceBetweenPoints(clusters[i][j]->second, i);
-
             int secondClosest = getSecondClosestCentroid(clusters[i][j]->second);
             bi = avgDistanceBetweenPoints(clusters[i][j]->second, secondClosest);
-
             sil += (bi - ai) / max(ai, bi);
         }
 
@@ -331,6 +324,23 @@ void Clusters::Silhouette(string filename, bool complete)
     }
 
     outputFile.close();
+}
+
+// Function that creates 'k' clusters and assigns each point to a cluster. Lloyd's algorithm has been implemented
+// It also generates the output file with the results
+void cluster(string output, bool complete)
+{
+    //cout << "1" << endl;
+    vector<double> si;
+
+    // Find the first 'k' centroids with KMeans++
+    clusters->KMeans();
+
+    // Using Lloyd's algorithm keep updating the centroids and assign the points to their nearest centroid
+    clusters->Lloyd();
+
+    // Create the output file and write all the results inside
+    //clusters->Silhouette(output, complete);
 }
 
 void DeallocateMemoryClusters()

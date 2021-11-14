@@ -1,9 +1,9 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "Methods.h"
-#include "LshHashing.h"
-#include "CubeHashing.h"
+#include "../LSH/LshHashing.h"
+#include "../HyperCube/CubeHashing.h"
 #include "VectorData.h"
-#include "Kmeans.h"
+
 
 // Function that reads all the points from the input file and saves them in the appropriate data structures (LSH)
 void LSH_pre_process(string filename, int L)
@@ -51,7 +51,7 @@ void LSH_pre_process(string filename, int L)
 
         inputFile.close();
     }
-
+    //For Debug only
     //LSH_hashTables->printHash();
 }
 
@@ -100,6 +100,7 @@ void Cube_pre_process(string filename, int k)
         inputFile.close();
     }
     
+    //For Debug only
     //C_hashTables->printHash();
 }
 
@@ -118,12 +119,10 @@ void lsh(string input, string output, int N, double R)
     if (inputFile)
     {
         string line;
-        unsigned long correct=0;
-        unsigned long quer=0;
 
         // Read every line of the file
         while (getline(inputFile, line))
-        {quer++;
+        {
             char* buff = new char[line.length()+1];
             strcpy(buff, line.c_str());
             char* token = strtok(buff," \t");
@@ -160,8 +159,7 @@ void lsh(string input, string output, int N, double R)
             {
                 outputFile << "Nearest neighbor-"<< j << ": " << nn[i].first << endl;
                 outputFile << "distanceLSH: "<< nn[i].second << endl;
-                outputFile << "distanceTrue: "<< bf[i].second << " | " << bf[i].first << endl;
-                correct = correct + (nn[i].first==bf[i].first ? 1 : 0);
+                outputFile << "distanceTrue: "<< bf[i].second << endl;
                 j++;
             }
             
@@ -178,7 +176,7 @@ void lsh(string input, string output, int N, double R)
             delete[] buff;
             q.clear();
         }
-        cout << 100*((double)correct / (quer*N)) << "%%" <<endl;
+        
         inputFile.close();
         outputFile.close();
     }
@@ -199,12 +197,11 @@ void cube(string input, string output, int N, int k, double R, int maxPoints, in
     if (inputFile)
     {
         string line;
-        unsigned long correct = 0;
-        unsigned long quer = 0;
+
         // Read every line of the file
         while (getline(inputFile, line))
         {
-            quer++;
+   
             char* buff = new char[line.length() + 1];
             strcpy(buff, line.c_str());
             char* token = strtok(buff, " \t");
@@ -241,8 +238,7 @@ void cube(string input, string output, int N, int k, double R, int maxPoints, in
             {
                 outputFile << "Nearest neighbor-" << j << ": " << nn[i].first << endl;
                 outputFile << "distanceHypercube: " << nn[i].second << endl;
-                outputFile << "distanceTrue: " << bf[i].second << " | " << bf[i].first << endl;
-                correct = correct + (nn[i].first == bf[i].first ? 1 : 0);
+                outputFile << "distanceTrue: " << bf[i].second << endl;
                 j++;
             }
 
@@ -259,7 +255,7 @@ void cube(string input, string output, int N, int k, double R, int maxPoints, in
             delete[] buff;
             q.clear();
         }
-        cout << 100 * ((double)correct / (quer * N)) << "%" << endl;
+        
         inputFile.close();
         outputFile.close();
     }
@@ -306,21 +302,4 @@ void Cluster_pre_process(string filename)
 
         inputFile.close();
     }
-}
-
-
-// Function that creates 'k' clusters and assigns each point to a cluster. Lloyd's algorithm has been implemented
-// It also generates the output file with the results
-void cluster(string output, bool complete)
-{
-    vector<double> si;
-
-    // Find the first 'k' centroids with KMeans++
-    clusters->KMeans();
-
-    // Using Lloyd's algorithm keep updating the centroids and assign the points to their nearest centroid
-    clusters->Lloyd();
-
-    // Create the output file and write all the results inside
-    //clusters->Silhouette(output, complete);
 }

@@ -3,9 +3,8 @@
 #include <iostream>
 #include <string>
 
-#include "Methods.h"
-#include "Tools.h"
-#include "Kmeans.h"
+#include "./Common/Methods.h"
+#include "./Cluster/Kmeans.h"
 
 using namespace std;
 
@@ -61,12 +60,6 @@ int main(int argc, char** argv)
     cout << "inputFile: " << input_file << endl;
     cout << "outputFile: " << out_file << endl;
     cout << "confFile: " << conf_file << endl;
-    cout << "Number of clusters: " << num_clusters << endl;
-    cout << "L: " << L << endl;
-    cout << "Number of hash functions: " << num_hash << endl;
-    cout << "M: " << M << endl;
-    cout << "Cube dimensions: " << cube_dim << endl;
-    cout << "Probes: " << probes << endl;
 
     init_vectorData();
     

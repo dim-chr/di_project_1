@@ -39,6 +39,7 @@ void init_vectorData();
 void init_clusters(int k);
 void Cluster_pre_process(string filename);
 void DeallocateMemoryClusters();
+void cluster(string output, bool complete);
 
 #endif
 
