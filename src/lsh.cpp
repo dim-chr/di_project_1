@@ -1,10 +1,10 @@
-#include <cstdlib>
-#include <iostream>
-#include <string>
-
 #include "Methods.h"
 #include "Tools.h"
 #include "LshHashing.h"
+
+#include <cstdlib>
+#include <iostream>
+#include <string>
 
 using namespace std;
 
@@ -24,6 +24,7 @@ int main(int argc, char** argv)
         exit(1);
     }
 
+    // Read the arguments
     for(int i = 0; i < argc; i++)
     {
         

@@ -15,6 +15,7 @@ void Cube_pre_process(string filename, int k);
 
 void lsh(string input, string output, int N, double R);
 void cube(string input, string output, int N, int k, double R, int maxPoints, int probes);
+void cluster(string output, bool complete);
 
 #endif
 

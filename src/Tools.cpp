@@ -82,6 +82,7 @@ int extractIntegerFromString(string str)
 }
 */
 
+// Function that finds the number of coordinates that a point has
 int dimension(string filename)
 {
     int dim = 0; 
@@ -98,6 +99,7 @@ int dimension(string filename)
     return dim;
 }
 
+// Function that counts the number of lines in a file
 int count_file_lines(string filename)
 {
     int count = 0;

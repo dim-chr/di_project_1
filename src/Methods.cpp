@@ -2,11 +2,10 @@
 #include "Methods.h"
 #include "LshHashing.h"
 #include "CubeHashing.h"
-
 #include "VectorData.h"
 #include "Kmeans.h"
 
-// Function that reads all the points from the input file and saves them in the appropriate data structures
+// Function that reads all the points from the input file and saves them in the appropriate data structures (LSH)
 void LSH_pre_process(string filename, int L)
 {
     vector<double> p;
@@ -53,12 +52,11 @@ void LSH_pre_process(string filename, int L)
         inputFile.close();
     }
 
-    LSH_hashTables->printHash();
+    //LSH_hashTables->printHash();
 }
 
 
-
-// Function that reads all the points from the input file and saves them in the appropriate data structures
+// Function that reads all the points from the input file and saves them in the appropriate data structures (Hypercube)
 void Cube_pre_process(string filename, int k)
 {    
     vector<double> p;
@@ -95,7 +93,6 @@ void Cube_pre_process(string filename, int k)
             // Insert the point in the hash table
             C_hashTables->Cube_insert(p, vectorDataPointer, k);
 
-
             delete[] buff;
             p.clear();
         }
@@ -103,11 +100,11 @@ void Cube_pre_process(string filename, int k)
         inputFile.close();
     }
     
-    C_hashTables->printHash();
+    //C_hashTables->printHash();
 }
 
 
-// Function that reads all the query points from the query file and executes the LSH and Range Search algorithms
+// Function that reads all the query points from the query file and executes the ANN and Range Search algorithms (LSH)
 // It also generates the output file with the results
 void lsh(string input, string output, int N, double R)
 {
@@ -142,7 +139,7 @@ void lsh(string input, string output, int N, double R)
                 token = strtok (NULL, " \t");
             }
 
-            // Find the N nearest neighbors using the LSH algorithm, their distance from 'q' and the time it takes to find them
+            // Find the N nearest neighbors using the ANN algorithm, their distance from 'q' and the time it takes to find them
             auto startLSH = chrono::steady_clock::now();
             vector<pair<string, double>> nn = LSH_hashTables->LSH_findNN(q, N);
             auto endLSH = chrono::steady_clock::now();
@@ -187,6 +184,9 @@ void lsh(string input, string output, int N, double R)
     }
 }
 
+
+// Function that reads all the query points from the query file and executes the ANN and Range Search algorithms (Hypercube)
+// It also generates the output file with the results
 void cube(string input, string output, int N, int k, double R, int maxPoints, int probes)
 {
     vector<double> q;
@@ -220,7 +220,7 @@ void cube(string input, string output, int N, int k, double R, int maxPoints, in
                 token = strtok(NULL, " \t");
             }
 
-            // Find the N nearest neighbors using the LSH algorithm, their distance from 'q' and the time it takes to find them
+            // Find the N nearest neighbors using the ANN algorithm, their distance from 'q' and the time it takes to find them
             auto startCube = chrono::steady_clock::now();
             vector<pair<string, double>> nn = C_hashTables->Cube_findNN(q, N, k, maxPoints, probes);
             auto endCube = chrono::steady_clock::now();
@@ -265,6 +265,8 @@ void cube(string input, string output, int N, int k, double R, int maxPoints, in
     }
 }
 
+
+// Function that reads all the points from the input file and saves them in the appropriate data structures (Cluster)
 void Cluster_pre_process(string filename)
 {    
     vector<double> p;
@@ -304,4 +306,21 @@ void Cluster_pre_process(string filename)
 
         inputFile.close();
     }
+}
+
+
+// Function that creates 'k' clusters and assigns each point to a cluster. Lloyd's algorithm has been implemented
+// It also generates the output file with the results
+void cluster(string output, bool complete)
+{
+    vector<double> si;
+
+    // Find the first 'k' centroids with KMeans++
+    clusters->KMeans();
+
+    // Using Lloyd's algorithm keep updating the centroids and assign the points to their nearest centroid
+    clusters->Lloyd();
+
+    // Create the output file and write all the results inside
+    //clusters->Silhouette(output, complete);
 }

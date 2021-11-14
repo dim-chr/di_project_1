@@ -1,12 +1,12 @@
 #define _CRT_SECURE_NO_WARNINGS
+#include "Methods.h"
+#include "Tools.h"
+#include "CubeHashing.h"
+
 #include <cstdlib>
 #include <iostream>
 #include <string>
 #include <cmath>
-
-#include "Methods.h"
-#include "Tools.h"
-#include "CubeHashing.h"
 
 using namespace std;
 
@@ -27,6 +27,7 @@ int main(int argc, char** argv)
         exit(1);
     }
 
+    // Read the arguments
     for (int i = 0; i < argc; i++)
     {
 
